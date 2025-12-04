@@ -1,0 +1,59 @@
+[[fertilzier]]
+cft_id = 44
+display_name = "Compose your own NPK"
+key = "custom_npk"
+inhibition = 1
+
+[[fertilzier]]
+cft_id = 46
+display_name = "Ammonium nitrate - 33.5% N (granulated)"
+key = "ammonium_nitrate"
+inhibition = 2
+
+[[fertilzier]]
+cft_id = 4
+display_name = "Ammonium sulphate nitrate - 26%N"
+key = "ammonium_sulphate_nitrate"
+inhibition = 1
+
+[[fertilzier]]
+cft_id = 7
+display_name = "Calcium nitrate - 15.5% N"
+key = "calcium_nitrate"
+inhibition = 1
+
+[[fertilzier]]
+cft_id = 16
+display_name = "Muriate of potash / Potassium chloride - 60% K2O"
+key = "potash"
+inhibition = 1
+
+[[fertilzier]]
+cft_id = 45
+display_name = "Urea - 46% N"
+key = "urea"
+inhibition = 1
+
+[[fertilzier]]
+cft_id = 22
+display_name = "Urea ammonium nitrate solution - 32% N"
+key = "urea_ammonium_nitrate"
+inhibition = 1
+
+[[fertilzier]]
+cft_id = 26
+display_name = "Cattle manure - 0.6% N"
+key = "cattle_manure"
+inhibition = 1
+
+[[fertilzier]]
+cft_id = 32
+display_name = "Cattle slurry - 0.26% N"
+key = "cattle_slurry"
+inhibition = 1
+
+[[fertilzier]]
+cft_id = 13
+display_name = "Limestone - 55% CaCO3 / 29%CaO"
+key = "limestone"
+inhibition = 1

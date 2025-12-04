@@ -11,7 +11,7 @@
 cft_id = 1
 display_name = "Grass fresh managed - on farm"
 certified = false
-regions = "Global (world)"
+region_name = "Global (world)"
 cft_name = "grass_fresh_managed"
 
 [[feed]]
