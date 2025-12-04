@@ -1,0 +1,28 @@
+# =============================================================================
+# HERD SECTIONS
+# =============================================================================
+# Each herd section has:
+# - cft_id: cft identifier as integer
+# - cft_name: cft identifier as text
+# - display_name: optional UI label
+# =============================================================================
+
+[[herd_section]]
+cft_id = 1
+cft_name = "calf_dairy"
+display_name = "Dairy calves"
+
+[[herd_section]]
+cft_id = 3
+cft_name = "heifer"
+display_name = "Heifers"
+
+[[herd_section]]
+cft_id = 4
+cft_name = "cow_milk"
+display_name = "Milk cows"
+
+[[herd_section]]
+cft_id = 5
+cft_name = "cow_dry"
+display_name = "Dry cows"
