@@ -13,3 +13,10 @@ def load_toml(name: str):
 
     with open(path, "rb") as f:
         return tomllib.load(f)
+
+SCHEMA_FILE = Path(__file__).resolve().parent / "config" / "input_table.toml"
+
+def load_farm_schema():
+    with open(SCHEMA_FILE, "rb") as f:
+        data = tomllib.load(f)
+    return data["columns"]
