@@ -26,3 +26,12 @@ display_name = "Milk cows"
 cft_id = 5
 cft_name = "cow_dry"
 display_name = "Dry cows"
+
+[[herd_variety]]
+cft_name = "Fleckvieh"
+
+[[herd_variety]]
+cft_name = "Holstein"
+
+[[herd_variety]]
+cft_name = "Montbeliarde"
