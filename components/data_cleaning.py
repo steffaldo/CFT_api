@@ -1,5 +1,5 @@
 import pandas as pd
-from config_loader import load_toml
+from config.config_loader import load_toml
 import streamlit as st
 
 herd_varieties = load_toml("herd.toml")["herd_variety"]

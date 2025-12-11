@@ -1,0 +1,1584 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "https://coolfarmtool.org/v1/dairy_calculate.json",
+  "type": "object",
+  "title": "Dairy \"Calculate\"",
+  "required": [
+    "farm",
+    "general",
+    "milk_production",
+    "herd_sections",
+    "grazing",
+    "fertilisers",
+    "feed_components",
+    "manure",
+    "direct_energy",
+    "transport"
+  ],
+  "properties": {
+    "farm": {
+      "$id": "#/properties/farm",
+      "type": "object",
+      "required": [
+        "country",
+        "territory",
+        "climate",
+        "average_temperature",
+        "latitude",
+        "longitude",
+        "soil_characteristics"
+      ],
+      "properties": {
+        "latitude": {
+          "$id": "#/properties/farm/properties/latitude",
+          "type": "number",
+          "multipleOf": 0.001,
+          "description": "Farm's latitude *(Farm settings → Lat/lon)*"
+        },
+        "longitude": {
+          "$id": "#/properties/farm/properties/longitude",
+          "type": "number",
+          "multipleOf": 0.001,
+          "description": "Farm's longitude *(Farm settings → Lat/lon)*"
+        },
+        "country": {
+          "$id": "#/properties/farm/properties/country",
+          "type": [
+            "integer",
+            "string"
+          ],
+          "description": ":ref:`country` name or ID *(Farm Settings → Country)*",
+          "examples": [
+            "Ghana"
+          ]
+        },
+        "territory": {
+          "$id": "#/properties/farm/properties/territory",
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": ":ref:`territory` name or ID; send ``null`` if selected Country has no territories *(Farm Settings → Territory)*",
+          "examples": [
+            "Alabama"
+          ]
+        },
+        "climate": {
+          "$id": "#/properties/farm/properties/climate",
+          "type": [
+            "integer",
+            "string"
+          ],
+          "description": ":ref:`climate` *(Farm Settings → Climate)*",
+          "examples": [
+            "Warm Temperate Dry"
+          ]
+        },
+        "average_temperature": {
+          "$id": "#/properties/farm/properties/average_temperature",
+          "type": "object",
+          "properties": {
+            "value": {
+              "$id": "#/properties/farm/properties/average_temperature/properties/value",
+              "type": "number",
+              "description": "*(Farm Settings → Average Annual Temperature Value)*"
+            },
+            "unit": {
+              "$id": "#/properties/farm/properties/average_temperature/properties/unit",
+              "type": [
+                "string",
+                "number"
+              ],
+              "examples": [
+                "°C"
+              ],
+              "description": "Temperature :ref:`unit` name or ID *(Farm Settings → Average Annual Temperature Unit)*"
+            }
+          }
+        },
+        "soil_characteristics": {
+          "$id": "#/properties/farm/properties/soil_characteristics",
+          "type": [
+            "integer",
+            "string"
+          ],
+          "description": ":ref:`soil_characteristics` *(Farm Settings → Soil Characteristics)*",
+          "examples": [
+            "Sandy Soils",
+            1
+          ]
+        },
+        "farm_identifier": {
+          "$id": "#/properties/farm/properties/farm_identifier",
+          "type": [
+            "string",
+            "number"
+          ],
+          "description": "*(Farm Settings → Farm Identifier)*"
+        }
+      }
+    },
+    "general": {
+      "$id": "#/properties/general",
+      "type": "object",
+      "required": [
+        "grazing_area",
+        "feed_approach"
+      ],
+      "properties": {
+        "grazing_area": {
+          "$id": "#/properties/general/properties/grazing_area",
+          "type": "object",
+          "properties": {
+            "value": {
+              "$id": "#/properties/general/items/anyOf/0/properties/grazing_area/properties/value",
+              "type": "number",
+              "description": "*(Grazing → Grassland Fertilisation → Grassland Area Value)*",
+              "examples": [
+                12
+              ]
+            },
+            "unit": {
+              "$id": "#/properties/general/items/properties/grazing_area/properties/unit",
+              "type": [
+                "string",
+                "integer"
+              ],
+              "description": "*(Grazing → Grassland Fertilisation → Grassland Area Unit)*",
+              "examples": [
+                "ha"
+              ]
+            }
+          }
+        },
+        "feed_approach": {
+          "$id": "#/properties/general/properties/feed_approach",
+          "type": [
+            "string",
+            "integer"
+          ],
+          "description": "*(Feed)*",
+          "examples": [
+            "average"
+          ]
+        },
+        "fertilisation_approach": {
+          "$id": "#/properties/general/properties/fertilisation_approach",
+          "type": [
+            "string",
+            "integer",
+            "null"
+          ],
+          "description": "*(Fertilisation Approach)*",
+          "examples": [
+            1,
+            2
+          ]
+        }
+      }
+    },
+    "milk_production": {
+      "$id": "#/properties/milk_production",
+      "type": "object",
+      "description": "Basic information about your herd's milk production",
+      "required": [
+        "variety",
+        "reporting_year",
+        "date_time",
+        "date_month",
+        "name",
+        "product_dry",
+        "fat_content",
+        "protein_content",
+        "protein_measure"
+      ],
+      "properties": {
+        "variety": {
+          "$id": "#/properties/milk_production/properties/variety",
+          "type": "string",
+          "description": "Main breed. Note that if you have more than one breed you will need to select the most representative breed and adjust the default live weights to reflect your herd averages.",
+          "examples": [
+            "Brown Swiss"
+          ]
+        },
+        "reporting_year": {
+          "$id": "#/properties/milk_production/properties/reporting_year",
+          "type": "integer",
+          "description": "Choose a relevant start year for your 12 month reference period (the end year will be set automatically).",
+          "examples": [
+            2015
+          ]
+        },
+        "date_time": {
+          "$id": "#/properties/milk_production/properties/date_time",
+          "type": "string",
+          "description": "Choose the relevant start time for your start month (the end time will be set automatically).",
+          "examples": [
+            "start",
+            "middle",
+            "end"
+          ]
+        },
+        "date_month": {
+          "$id": "#/properties/milk_production/properties/date_month",
+          "type": "integer",
+          "description": "Choose a relevant start month for your 12 month reference period (the end month will be set automatically).",
+          "examples": [
+            1,
+            2,
+            12
+          ]
+        },
+        "name": {
+          "$id": "#/properties/milk_production/properties/name",
+          "type": "string",
+          "description": "Name of your assessment.",
+          "examples": [
+            "test_api"
+          ]
+        },
+        "product_dry": {
+          "$id": "#/properties/milk_production/properties/product_dry",
+          "type": "object",
+          "properties": {
+            "value": {
+              "$id": "#/properties/milk_production/properties/product_dry/properties/value",
+              "type": "number",
+              "minimum": 0,
+              "examples": [
+                10
+              ]
+            },
+            "unit": {
+              "$id": "#/properties/crop/properties/product_fresh/properties/unit",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "examples": [
+                "tonne"
+              ]
+            }
+          }
+        },
+        "fat_content": {
+          "$id": "#/properties/milk_production/properties/fat_content",
+          "type": "number",
+          "examples": [
+            3.9
+          ]
+        },
+        "protein_content": {
+          "$id": "#/properties/milk_production/properties/protein_content",
+          "type": "number",
+          "examples": [
+            3.8
+          ]
+        },
+        "protein_measure": {
+          "$id": "#/properties/milk_production/properties/protein_measure",
+          "type": "integer",
+          "description": "True Protein Content or Crude Protein Content",
+          "examples": [
+            1,
+            2
+          ]
+        }
+      }
+    },
+    "herd_sections": {
+      "$id": "#/properties/herd_sections",
+      "type": "array",
+      "description": "Basic information about your herd",
+      "items": {
+        "$id": "#/properties/herd_sections/items",
+        "type": "object",
+        "required": [
+          "phase",
+          "animals",
+          "live_weight",
+          "sold_animals",
+          "sold_weight",
+          "purchased_animals",
+          "purchased_weight"
+        ],
+        "properties": {
+          "phase": {
+            "$id": "#/properties/herd_sections/items/properties/phase",
+            "type": [
+              "string",
+              "integer"
+            ],
+            "description": ":ref:`phase` name *(Inputs → Herd → Category)*",
+            "default": "",
+            "examples": [
+              "Dairy calves"
+            ]
+          },
+          "animals": {
+            "$id": "#/properties/herd_sections/items/properties/animals",
+            "type": "integer",
+            "description": ":ref:`animals` count *(Inputs → Herd → On-farm animals → Number)*",
+            "default": 0,
+            "examples": [
+              33
+            ]
+          },
+          "live_weight": {
+            "$id": "#/properties/herd_sections/items/properties/live_weight",
+            "type": "object",
+            "description": ":ref:`live_weight` *(Inputs → Herd → On-farm animals → Live Weight)*",
+            "properties": {
+              "value": {
+                "$id": "#/properties/herd_sections/items/anyOf/0/properties/live_weight/properties/value",
+                "type": "number",
+                "examples": [
+                  152,
+                  152.3
+                ]
+              },
+              "unit": {
+                "$id": "#/properties/herd_sections/items/anyOf/0/properties/live_weight/properties/unit",
+                "type": [
+                  "string",
+                  "integer"
+                ],
+                "examples": [
+                  "kg"
+                ]
+              }
+            }
+          },
+          "sold_animals": {
+            "$id": "#/properties/herd_sections/items/properties/sold_animals",
+            "type": "integer",
+            "description": ":ref:`sold_animals` count *(Inputs → Herd → Sold animals → Number)*",
+            "default": 0,
+            "examples": [
+              0
+            ]
+          },
+          "sold_weight": {
+            "$id": "#/properties/herd_sections/items/properties/sold_weight",
+            "type": "object",
+            "description": ":ref:`sold_weight` *(Inputs → Herd → Sold animals → Live Weight)*",
+            "properties": {
+              "value": {
+                "$id": "#/properties/herd_sections/items/anyOf/0/properties/sold_weight/properties/value",
+                "type": "number",
+                "examples": [
+                  220,
+                  220.3
+                ]
+              },
+              "unit": {
+                "$id": "#/properties/herd_sections/items/anyOf/0/properties/sold_weight/properties/unit",
+                "type": [
+                  "string",
+                  "integer"
+                ],
+                "examples": [
+                  "kg"
+                ]
+              }
+            }
+          },
+          "purchased_animals": {
+            "$id": "#/properties/herd_sections/items/anyOf/0/properties/purchased_animals",
+            "type": "integer",
+            "description": ":ref:`purchased_animals` count *(Inputs → Herd → Purchased animals → Number)*",
+            "examples": [
+              0
+            ]
+          },
+          "purchased_weight": {
+            "$id": "#/properties/herd_sections/items/anyOf/0/properties/purchased_weight",
+            "type": "object",
+            "properties": {
+              "value": {
+                "$id": "#/properties/herd_sections/items/anyOf/0/properties/purchased_weight/properties/value",
+                "type": "number",
+                "description": ":ref:`purchased_weight_value` count *(Inputs → Herd → Purchased animals → Live Weight)*",
+                "examples": [
+                  220,
+                  220.3
+                ]
+              },
+              "unit": {
+                "$id": "#/properties/herd_sections/items/anyOf/0/properties/purchased_weight/properties/unit",
+                "type": [
+                  "string",
+                  "integer"
+                ],
+                "description": ":ref:`unit` unit *(Inputs → Herd  → Live weight unit)*",
+                "examples": [
+                  "kg"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "grazing": {
+      "$id": "#/properties/grazing",
+      "type": "array",
+      "description": "Basic information about your grazing",
+      "items": {
+        "anyOf": [
+          {
+            "$id": "#/properties/grazing/items/anyOf/0",
+            "type": "object",
+            "required": [
+              "herd_section",
+              "days",
+              "hours",
+              "category",
+              "quality"
+            ],
+            "properties": {
+              "herd_section": {
+                "$id": "#/properties/grazing/items/anyOf/0/properties/herd_section",
+                "type": [
+                  "string",
+                  "integer"
+                ],
+                "description": ":ref:`herd_section` name *(Inputs → Grazing → Category)*",
+                "examples": [
+                  "Dairy calves"
+                ]
+              },
+              "days": {
+                "$id": "#/properties/grazing/items/anyOf/0/properties/days",
+                "type": "integer",
+                "description": ":ref:`days` number *(Inputs → Grazing → Days)*",
+                "examples": [
+                  208
+                ]
+              },
+              "hours": {
+                "$id": "#/properties/grazing/items/anyOf/0/properties/hours",
+                "type": "integer",
+                "description": ":ref:`hours` number *(Inputs → Grazing → Hours/day)*",
+                "examples": [
+                  12
+                ]
+              },
+              "category": {
+                "$id": "#/properties/grazing/items/anyOf/0/properties/category",
+                "type": [
+                  "integer"
+                ],
+                "description": ":ref:`category` ID *(Inputs → Grazing → Grazing type)*",
+                "examples": [
+                  2
+                ]
+              },
+              "quality": {
+                "$id": "#/properties/grazing/items/anyOf/0/properties/quality",
+                "type": [
+                  "integer"
+                ],
+                "description": ":ref:`quality` ID *(Inputs → Grazing → Grazing quality)*",
+                "examples": [
+                  1
+                ]
+              }
+            }
+          }
+        ],
+        "properties": {
+          "herd_section": {
+            "$id": "#/properties/grazing/items/properties/herd_section",
+            "type": [
+              "string",
+              "integer"
+            ],
+            "description": ":ref:`herd_section` name *(Inputs → Grazing → Category)*",
+            "default": "",
+            "examples": [
+              "Dairy calves"
+            ]
+          },
+          "days": {
+            "$id": "#/properties/grazing/items/properties/days",
+            "type": "integer",
+            "description": ":ref:`days` number *(Inputs → Grazing → Days)*",
+            "default": 0,
+            "examples": [
+              208
+            ]
+          },
+          "hours": {
+            "$id": "#/properties/grazing/items/properties/hours",
+            "type": "integer",
+            "description": ":ref:`hours` number *(Inputs → Grazing → Hours/day)*",
+            "default": 0,
+            "examples": [
+              12
+            ]
+          },
+          "category": {
+            "$id": "#/properties/grazing/items/properties/category",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "description": ":ref:`category` name *(Inputs → Grazing → Grazing type)*",
+            "default": "",
+            "examples": [
+              "Confined pasture"
+            ]
+          },
+          "quality": {
+            "$id": "#/properties/grazing/items/properties/quality",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "description": ":ref:`quality` name *(Inputs → Grazing → Grazing quality)*",
+            "default": "",
+            "examples": [
+              "High"
+            ]
+          }
+        }
+      }
+    },
+    "fertilisers": {
+      "$id": "#/properties/fertilisers",
+      "type": "array",
+      "description": "Basic information about your fertiliser application",
+      "items": {
+        "$id": "#/properties/fertilisers/items",
+        "type": "object",
+        "required": [
+          "type",
+          "production",
+          "application_rate",
+          "application_date",
+          "rate_measure"
+        ],
+        "properties": {
+          "type": {
+            "$id": "#/properties/fertilisers/items/properties/type",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "description": ":ref:`fertiliser-type` name or ID *(Inputs → Fertiliser → Fertiliser Type)*",
+            "examples": [
+              "Compose your own NPK"
+            ]
+          },
+          "production": {
+            "$id": "#/properties/fertilisers/items/properties/production",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "description": ":ref:`fertiliser-production-database` (Inputs → Fertiliser → Manufactured In). Note, no production emissions will be calculated for all digestates, slurries, manures and litter. However for these inputs a production type is required e.g. \"World\" for the API to be validated correctly.",
+            "examples": [
+              "Europe 2014"
+            ]
+          },
+          "application_rate": {
+            "$id": "#/properties/fertilisers/items/properties/application_rate",
+            "type": "object",
+            "properties": {
+              "value": {
+                "$id": "#/properties/fertilisers/items/properties/application_rate/properties/value",
+                "type": "number",
+                "description": ":ref:`unit` name or ID *(Inputs → Fertiliser → Application Rate Value)*",
+                "minimum": 0,
+                "examples": [
+                  1
+                ]
+              },
+              "unit": {
+                "$id": "#/properties/fertilisers/properties/application_rate/properties/unit",
+                "type": [
+                  "integer",
+                  "string"
+                ],
+                "description": ":ref:`unit` name or ID *(Inputs → Fertiliser → Application Rate Unit)*"
+              }
+            }
+          },
+          "application_date": {
+            "$id": "#/properties/fertilisers/properties/application_date",
+            "type": "string",
+            "description": "Date in 'yyyy-mm-dd' format or 'unknown' *(Inputs → Fertiliser → Application Date)*",
+            "examples": [
+                  "2022-11-01",
+                  "unknown"
+                ]
+          },
+          "custom_ingredients": {
+            "$id": "#/properties/fertilisers/items/properties/application_rate",
+            "type": "object",
+            "description": "Send this data only for 'Compose your own N/P/K' (``{}`` otherwise); you cannot customise the ingredients of built-in fertiliser types",
+            "properties": {
+              "n_total_percentage": {
+                "$id": "#/properties/fertilisers/items/properties/custom_ingredients/properties/n_total_percentage",
+                "type": "number",
+                "description": "Total of ammonia, urea and nitric percentages  *(Inputs → Fertiliser → %N)*",
+                "minimum": 0,
+                "maximum": 100,
+                "examples": [
+                  0
+                ]
+              },
+              "n_ammonia_percentage": {
+                "$id": "#/properties/fertilisers/items/properties/custom_ingredients/properties/n_ammonia_percentage",
+                "type": "number",
+                "description": "*(Inputs → Fertiliser → %N (as ammonium-N))*",
+                "minimum": 0,
+                "maximum": 100,
+                "examples": [
+                  0
+                ]
+              },
+              "n_nitric_percentage": {
+                "$id": "#/properties/fertilisers/items/properties/custom_ingredients/properties/n_nitric_percentage",
+                "type": "number",
+                "description": "*(Inputs → Fertiliser → %N (as nitrate-N)*",
+                "minimum": 0,
+                "maximum": 100,
+                "examples": [
+                  0
+                ]
+              },
+              "n_urea_percentage": {
+                "$id": "#/properties/fertilisers/items/properties/custom_ingredients/properties/n_urea_percentage",
+                "type": "number",
+                "description": "*(Inputs → Fertiliser → %N (as Urea-N))*",
+                "minimum": 0,
+                "maximum": 100,
+                "examples": [
+                  0
+                ]
+              },
+              "p2o5_percentage": {
+                "$id": "#/properties/fertilisers/items/properties/custom_ingredients/properties/p2o5_percentage",
+                "type": "number",
+                "description": "*(Inputs → Fertiliser → %P2O5 or %P)*",
+                "minimum": 0,
+                "maximum": 100,
+                "examples": [
+                  0
+                ]
+              },
+              "p2o5_percentage_type_id": {
+                "$id": "#/properties/fertilisers/items/properties/custom_ingredients/properties/p2o5_percentage_type_id",
+                "type": "number",
+                "description": ":ref:`fertiliser-nutrient` *(Inputs → Fertiliser → %P2O5 or %P)*",
+                "examples": [
+                  2
+                ],
+                "enum": [
+                  4,
+                  2
+                ]
+              },
+              "k2o_percentage": {
+                "$id": "#/properties/fertilisers/items/properties/custom_ingredients/properties/k2o_percentage",
+                "type": "number",
+                "description": "*(Inputs → Fertiliser → %K2O or %K)*",
+                "minimum": 0,
+                "maximum": 100,
+                "examples": [
+                  0
+                ]
+              },
+              "k2o_percentage_type_id": {
+                "$id": "#/properties/fertilisers/items/properties/custom_ingredients/properties/k2o_percentage_type_id",
+                "type": "number",
+                "description": ":ref:`fertiliser-nutrient` *(Inputs → Fertiliser → %K2O or %K)*",
+                "examples": [
+                  5
+                ],
+                "enum": [
+                  3,
+                  5
+                ]
+              }
+            }
+          },
+          "rate_measure": {
+            "$id": "#/properties/fertilisers/items/properties/rate_measure",
+            "type": "string",
+            "description": "A :ref:`fertiliser-nutrient` ingredient, or '' / 'product' *(Inputs → Fertiliser → Fertiliser Weight or Unit)*",
+            "examples": [
+              "product"
+            ]
+          },
+          "inhibition": {
+            "$id": "#/properties/fertilisers/items/properties/inhibition_id",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "description": ":ref:`fertiliser-inhibition` *(Grazing → Grassland Fertilisation → Emissions Inhibitors)*",
+            "examples": [
+              1,
+              2,
+              "Nitrification inhibitor"
+            ]
+          }
+        }
+      }
+    },
+    "feed_components": {
+      "$id": "#/properties/feed_components",
+      "type": "array",
+      "description": "Basic information about your feed component",
+      "items": {
+        "anyOf": [
+          {
+            "$id": "#/properties/feed_components/items/anyOf/0",
+            "type": "object",
+            "required": [
+              "item",
+              "percentage"
+            ],
+            "properties": {
+              "item": {
+                "$id": "#/properties/feed_components/items/anyOf/0/properties/item",
+                "type": [
+                  "integer",
+                  "string"
+                ],
+                "description": ":ref:`feed-components-item` name *(Inputs → Feed → Feed component)*",
+                "examples": [
+                  "Straw"
+                ]
+              },
+              "region": {
+                "$id": "#/properties/feed_components/items/anyOf/0/region",
+                "type": [
+                  "integer",
+                  "string"
+                ],
+                "description": ":ref:`feed-item-region` name or ID (Inputs → Feed → Region)",
+                "examples": [
+                  "Global (world)",
+                  22
+                ]
+              },
+              "percentage": {
+                "$id": "#/properties/feed_components/items/anyOf/0/properties/percentage",
+                "type": "integer",
+                "description": ":ref:`percentage` name *(Inputs → Feed → Percentage)*",
+                "examples": [
+                  50
+                ]
+              },
+              "certified": {
+                "$id": "#/properties/feed_components/items/anyOf/0/properties/certified",
+                "type": "boolean",
+                "description": "Deforestation-free (no land-use change for 20 years) *(Inputs → Feed → Certified)*.",
+                "examples": [
+                  true,
+                  false
+                ]
+              }
+            }
+          },
+          {
+            "$id": "#/properties/feed_components/crop_product",
+            "type": "object",
+            "required": [
+              "crop_product"
+            ],
+            "properties": {
+              "crop_product": {
+                "$id": "#/properties/feed_components/items/anyOf/1/crop_product",
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "$id": "#/properties/feed_components/items/anyOf/1/crop_product/properties/type",
+                    "type": [
+                      "integer",
+                      "string"
+                    ],
+                    "description": ":ref:`crop-type` *(Crop → Crop Name)*",
+                    "examples": [
+                      "Barley"
+                    ]
+                  },
+                  "product_dry": {
+                    "$id": "#/properties/feed_components/items/anyOf/1/crop_product/product_dry",
+                    "type": "object",
+                    "properties": {
+                      "value": {
+                        "$id": "#/properties/feed_components/items/anyOf/1/crop_product/product_dry/properties/value",
+                        "type": "number",
+                        "description": "Net product yield *(Crop → Net Yield)*",
+                        "minimum": 0,
+                        "examples": [
+                          10
+                        ]
+                      },
+                      "unit": {
+                        "$id": "#/properties/feed_components/items/anyOf/1/crop_product/product_dry/properties/unit",
+                        "type": [
+                          "integer",
+                          "string"
+                        ],
+                        "examples": [
+                          "tonne"
+                        ],
+                        "description": "Weight :ref:`unit` name or ID *(Crop → Net Yield Unit)**"
+                      }
+                    }
+                  },
+                  "feed_type": {
+                    "$id": "#/properties/feed_components/items/anyOf/1/crop_product/properties/feed_type",
+                    "type": [
+                      "integer",
+                      "string"
+                    ],
+                    "description": ":ref:`feed-components-item` type",
+                    "examples": [
+                      "Barley"
+                    ]
+                  },
+                  "emissions_total": {
+                    "$id": "#/properties/feed_components/items/anyOf/1/crop_product/properties/emissions_total",
+                    "type": "object",
+                    "properties": {
+                      "value": {
+                        "$id": "#/properties/feed_components/items/anyOf/1/crop_product/properties/emissions_total/properties/value",
+                        "type": "number",
+                        "description": "Emissions total calulated from crop_product/calculate endpoint",
+                        "examples": [
+                          10
+                        ]
+                      },
+                      "unit": {
+                        "$id": "#/properties/feed_components/items/anyOf/1/crop_product/properties/emissions_total/properties/unit",
+                        "type": [
+                          "integer",
+                          "string"
+                        ],
+                        "examples": [
+                          "kg CO2e"
+                        ],
+                        "description": "Emissions in kg CO2e :ref:`unit` name or ID"
+                      }
+                    }
+                  }
+                }
+              },
+              "percentage": {
+                "$id": "#/properties/feed_components/items/anyOf/0/properties/percentage",
+                "type": "integer",
+                "description": ":ref:`percentage` name *(Inputs → Feed → Percentage)*",
+                "examples": [
+                  50
+                ]
+              },
+              "certified": {
+                "$id": "#/properties/feed_components/items/anyOf/0/properties/certified",
+                "type": "boolean",
+                "description": "Deforestation-free (no land-use change for 20 years) *(Inputs → Feed → Certified)*",
+                "examples": [
+                  true,
+                  false
+                ]
+              }
+            }
+          },
+          {
+            "$id": "#/properties/feed_components/items/anyOf/2",
+            "type": "object",
+            "required": [
+              "item",
+              "herd_section",
+              "dry_matter"
+            ],
+            "properties": {
+              "item": {
+                "$id": "#/properties/feed_components/items/anyOf/0/properties/item",
+                "type": [
+                  "integer",
+                  "string"
+                ],
+                "description": ":ref:`feed-components-item` name or ID *(Inputs → Feed → Feed component)*",
+                "examples": [
+                  "Straw"
+                ]
+              },
+              "region": {
+                "$id": "#/properties/feed_compoenents/items/anyOf/0/properties/region",
+                "type": [
+                  "integer",
+                  "string"
+                ],
+                "description": ":ref:`feed-item-region` name or ID (Inputs → Feed → Region)",
+                "examples": [
+                  "Global (world)",
+                  22
+                ]
+              },
+              "herd_section": {
+                "$id": "#/properties/manure/items/anyOf/0/properties/herd_section",
+                "type": [
+                  "integer",
+                  "string"
+                ],
+                "description": ":ref:`herd-section` name *(Inputs → Feed → Animal category)*",
+                "examples": [
+                  "Dairy calves"
+                ]
+              },
+              "dry_matter": {
+                "type": "object",
+                "required": [
+                  "value",
+                  "unit"
+                ],
+                "properties": {
+                  "value": {
+                    "$id": "#/properties/feed/items/properties/dry_matter/properties/value",
+                    "type": "number",
+                    "description": "*(Feed → Dry Matter Value)*",
+                    "minimum": 0,
+                    "examples": [
+                      4
+                    ]
+                  },
+                  "unit": {
+                    "$id": "#/properties/feed/items/properties/dry_matter/properties/unit",
+                    "type": [
+                      "string",
+                      "number"
+                    ],
+                    "examples": [
+                      "tonne"
+                    ],
+                    "description": ":ref:`unit` name or ID *(Feed → Dry Matter Value)*"
+                  }
+                }
+              },
+              "farm_gate": {
+                "type": "object",
+                "required": [
+                  "value",
+                  "unit"
+                ],
+                "properties": {
+                  "value": {
+                    "$id": "#/properties/feed/items/properties/farm_gate/properties/value",
+                    "type": "number",
+                    "description": "*(Feed → Fresh Weight value)*",
+                    "minimum": 0,
+                    "examples": [
+                      4
+                    ]
+                  },
+                  "unit": {
+                    "$id": "#/properties/feed/items/properties/farm_gate/properties/unit",
+                    "type": [
+                      "string",
+                      "number"
+                    ],
+                    "examples": [
+                      "tonne"
+                    ],
+                    "description": ":ref:`unit` name or ID *(Feed → Fresh Weight Value)*"
+                  }
+                }
+              },
+              "certified": {
+                "$id": "#/properties/feed_components/items/anyOf/0/properties/certified",
+                "type": "boolean",
+                "description": "Deforestation-free (no land-use change for 20 years) *(Inputs → Feed → Certified)*",
+                "examples": [
+                  true,
+                  false
+                ]
+              }
+            }
+          },
+          {
+            "$id": "#/properties/feed_components/items/anyOf/3",
+            "type": "object",
+            "required": [
+              "crop_product",
+              "herd_section",
+              "dry_matter"
+            ],
+            "properties": {
+              "crop_product": {
+                "$id": "#/properties/feed_components/items/anyOf/3/crop_product",
+                "type": "object",
+                "required": [
+                  "type",
+                  "product_dry",
+                  "feed_type",
+                  "emissions_total"
+                ],
+                "properties": {
+                  "type": {
+                    "$id": "#/properties/feed_components/items/anyOf/3/crop_product/properties/type",
+                    "type": [
+                      "integer",
+                      "string"
+                    ],
+                    "description": ":ref:`crop-type` *(Crop → Crop Name)*",
+                    "examples": [
+                      "Barley"
+                    ]
+                  },
+                  "product_dry": {
+                    "$id": "#/properties/feed_components/items/anyOf/3/crop_product/product_dry",
+                    "type": "object",
+                    "properties": {
+                      "value": {
+                        "$id": "#/properties/feed_components/items/anyOf/3/crop_product/product_dry/properties/value",
+                        "type": "number",
+                        "description": "Net product yield *(Crop → Net Yield)*",
+                        "minimum": 0,
+                        "examples": [
+                          10
+                        ]
+                      },
+                      "unit": {
+                        "$id": "#/properties/feed_components/items/anyOf/3/crop_product/product_dry/properties/unit",
+                        "type": [
+                          "integer",
+                          "string"
+                        ],
+                        "examples": [
+                          "tonne"
+                        ],
+                        "description": "Weight :ref:`unit` name or ID *(Crop → Net Yield Unit)**"
+                      }
+                    }
+                  },
+                  "feed_type": {
+                    "$id": "#/properties/feed_components/items/anyOf/3/crop_product/properties/feed_type",
+                    "type": [
+                      "integer",
+                      "string"
+                    ],
+                    "description": ":ref:`feed-components-item` type",
+                    "examples": [
+                      "Barley"
+                    ]
+                  },
+                  "emissions_total": {
+                    "$id": "#/properties/feed_components/items/anyOf/3/crop_product/properties/emissions_total",
+                    "type": "object",
+                    "properties": {
+                      "value": {
+                        "$id": "#/properties/feed_components/items/anyOf/1/crop_product/properties/emissions_total/properties/value",
+                        "type": "number",
+                        "description": "Emissions total calulated from crop_product/calculate endpoint",
+                        "minimum": 0,
+                        "examples": [
+                          10
+                        ]
+                      },
+                      "unit": {
+                        "$id": "#/properties/feed_components/items/anyOf/3/crop_product/properties/emissions_total/properties/unit",
+                        "type": [
+                          "integer",
+                          "string"
+                        ],
+                        "examples": [
+                          "kg CO2e"
+                        ],
+                        "description": "Emissions in kg CO2e :ref:`unit` name or ID"
+                      }
+                    }
+                  }
+                }
+              },
+              "herd_section": {
+                "$id": "#/properties/manure/items/anyOf/3/properties/herd_section",
+                "type": [
+                  "integer",
+                  "string"
+                ],
+                "description": ":ref:`herd-section` name *(Inputs → Feed → Animal category)*",
+                "examples": [
+                  "Dairy calves"
+                ]
+              },
+              "dry_matter": {
+                "type": "object",
+                "required": [
+                  "value",
+                  "unit"
+                ],
+                "properties": {
+                  "value": {
+                    "$id": "#/properties/feed/items/properties/dry_matter/properties/value",
+                    "type": "number",
+                    "description": "*(Feed → Dry Matter Value)*",
+                    "minimum": 0,
+                    "examples": [
+                      4
+                    ]
+                  },
+                  "unit": {
+                    "$id": "#/properties/feed/items/properties/dry_matter/properties/unit",
+                    "type": [
+                      "string",
+                      "number"
+                    ],
+                    "examples": [
+                      "tonne"
+                    ],
+                    "description": ":ref:`unit` name or ID *(Feed → Dry Matter Value)*"
+                  }
+                }
+              },
+              "farm_gate": {
+                "type": "object",
+                "required": [
+                  "value",
+                  "unit"
+                ],
+                "properties": {
+                  "value": {
+                    "$id": "#/properties/feed/items/properties/farm_gate/properties/value",
+                    "type": "number",
+                    "description": "*(Feed → Fresh Weight Value)*",
+                    "minimum": 0,
+                    "examples": [
+                      4
+                    ]
+                  },
+                  "unit": {
+                    "$id": "#/properties/feed/items/properties/farm_gate/properties/unit",
+                    "type": [
+                      "string",
+                      "number"
+                    ],
+                    "examples": [
+                      "tonne"
+                    ],
+                    "description": ":ref:`unit` name or ID *(Feed → Fresh Weight)*"
+                  }
+                }
+              },
+              "certified": {
+                "$id": "#/properties/feed_components/items/anyOf/0/properties/certified",
+                "type": "boolean",
+                "description": "Deforestation-free (no land-use change for 20 years) *(Inputs → Feed → Certified)*",
+                "examples": [
+                  true,
+                  false
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    "feed_additives": {
+      "$id": "#/properties/feed_additives",
+      "type": "array",
+      "description": "Basic information about your feed additive",
+      "items": {
+        "anyOf": [
+          {
+            "$id": "#/properties/feed_additives/items/anyOf/0",
+            "type": "object",
+            "required": [
+              "herd_section",
+              "type",
+              "dose",
+              "dose_unit",
+              "days",
+              "herd_section_percentage"
+            ],
+            "properties": {
+              "herd_section": {
+                "$id": "#/properties/feed_additives/items/anyOf/0/properties/herd_section",
+                "type": [
+                  "integer",
+                  "string"
+                ],
+                "description": ":ref:`herd_section` name *(Inputs → Feed additives → Animal category)*",
+                "examples": [
+                  "Dairy calves"
+                ]
+              },
+              "type": {
+                "$id": "#/properties/feed_additives/items/anyOf/0/properties/type",
+                "type": [
+                  "integer",
+                  "string"
+                ],
+                "description": ":ref:`type` name *(Inputs → Feed additives → Type)*",
+                "examples": [
+                  "Nitrate"
+                ]
+              },
+              "dose": {
+                "$id": "#/properties/feed_additives/items/anyOf/0/properties/dose",
+                "type": "number",
+                "description": ":ref:`dose` value *(Inputs → Feed additives → Dose)*",
+                "examples": [
+                  80
+                ]
+              },
+              "dose_unit": {
+                "$id": "#/properties/feed_additives/items/anyOf/0/properties/dose_unit",
+                "type": "string",
+                "description": ":ref:`dose_unit` value *(Inputs → Feed additives → Dose unit)*",
+                "examples": [
+                  "g / kg"
+                ]
+              },
+              "days": {
+                "$id": "#/properties/feed_additives/items/anyOf/0/properties/days",
+                "type": "integer",
+                "description": ":ref:`days` value *(Inputs → Feed additives → Days)*",
+                "examples": [
+                  10
+                ]
+              },
+              "herd_section_percentage": {
+                "$id": "#/properties/feed_additives/items/anyOf/0/properties/herd_section_percentage",
+                "type": "number",
+                "description": ":ref:`herd_section_percentage` value *(Inputs → Feed additives → Herd section percentage)*",
+                "minimum": 0,
+                "maximum": 100,
+                "examples": [
+                  70
+                ]
+              }
+            }
+          },
+          {
+            "$id": "#/properties/feed_additives/items/anyOf/1",
+            "type": "object",
+            "required": [
+              "herd_section",
+              "type",
+              "dose",
+              "dose_unit",
+              "ndf",
+              "crude_fat",
+              "days",
+              "herd_section_percentage"
+            ],
+            "properties": {
+              "herd_section": {
+                "$id": "#/properties/feed_additives/items/anyOf/1/properties/herd_section",
+                "type": [
+                  "integer",
+                  "string"
+                ],
+                "description": ":ref:`herd_section` name *(Inputs → Feed additives → Animal category)*",
+                "examples": [
+                  "Dairy calves"
+                ]
+              },
+              "type": {
+                "$id": "#/properties/feed_additives/items/anyOf/1/properties/type",
+                "type": [
+                  "integer",
+                  "string"
+                ],
+                "description": ":ref:`type` name *(Inputs → Feed additives → Type)*",
+                "examples": [
+                  "3NOP"
+                ]
+              },
+              "dose": {
+                "$id": "#/properties/feed_additives/items/anyOf/1/properties/dose",
+                "type": "number",
+                "description": ":ref:`dose` value *(Inputs → Feed additives → Dose)*",
+                "examples": [
+                  80
+                ]
+              },
+              "ndf": {
+                "$id": "#/properties/feed_additives/items/anyOf/1/properties/ndf",
+                "type": "number",
+                "description": ":ref:`ndf` value *(Inputs → Feed additives → NDF)*",
+                "minimum": 0,
+                "maximum": 100,
+                "examples": [
+                  10
+                ]
+              },
+              "crude_fat": {
+                "$id": "#/properties/feed_additives/items/anyOf/1/properties/crude_fat",
+                "type": "number",
+                "description": ":ref:`crude_fat` value *(Inputs → Feed additives → Crude fat)*",
+                "minimum": 0,
+                "maximum": 100,
+                "examples": [
+                  10
+                ]
+              },
+              "dose_unit": {
+                "$id": "#/properties/feed_additives/items/anyOf/1/properties/dose_unit",
+                "type": "string",
+                "description": ":ref:`dose_unit` value *(Inputs → Feed additives → Dose unit)*",
+                "examples": [
+                  "g / kg"
+                ]
+              },
+              "days": {
+                "$id": "#/properties/feed_additives/items/anyOf/1/properties/days",
+                "type": "integer",
+                "description": ":ref:`days` value *(Inputs → Feed additives → Days)*",
+                "examples": [
+                  10
+                ]
+              },
+              "herd_section_percentage": {
+                "$id": "#/properties/feed_additives/items/anyOf/1/properties/herd_section_percentage",
+                "type": "number",
+                "description": ":ref:`herd_section_percentage` value *(Inputs → Feed additives → Herd section percentage)*",
+                "minimum": 0,
+                "maximum": 100,
+                "examples": [
+                  70
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    "manure": {
+      "$id": "#/properties/manure",
+      "type": "array",
+      "description": "Basic information about your manure",
+      "items": {
+        "anyOf": [
+          {
+            "$id": "#/properties/manure/items/anyOf/0",
+            "type": "object",
+            "required": [
+              "herd_section",
+              "type",
+              "allocation"
+            ],
+            "properties": {
+              "herd_section": {
+                "$id": "#/properties/manure/items/anyOf/0/properties/herd_section",
+                "type": [
+                  "integer",
+                  "string"
+                ],
+                "description": ":ref:`herd_section` name *(Inputs → Manure → Animal category)*",
+                "examples": [
+                  "Dairy calves"
+                ]
+              },
+              "type": {
+                "$id": "#/properties/manure/items/anyOf/0/properties/type",
+                "type": [
+                  "integer",
+                  "string"
+                ],
+                "description": ":ref:`type` name *(Inputs → Manure → Type)*",
+                "examples": [
+                  "Deep bedding - no mixing"
+                ]
+              },
+              "allocation": {
+                "$id": "#/properties/manure/items/anyOf/0/properties/allocation",
+                "type": "integer",
+                "description": ":ref:`allocation` value *(Inputs → Manure → Percentage)*",
+                "examples": [
+                  70
+                ]
+              }
+            }
+          }
+        ],
+        "properties": {
+          "herd_section": {
+            "$id": "#/properties/manure/items/properties/herd_section",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "description": ":ref:`herd_section` name *(Inputs → Manure → Animal category)*",
+            "default": "",
+            "examples": [
+              "Dairy calves"
+            ]
+          },
+          "type": {
+            "$id": "#/properties/manure/items/properties/type",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "description": ":ref:`type` name *(Inputs → Manure → Type)*",
+            "default": "",
+            "examples": [
+              "Deep bedding - no mixing"
+            ]
+          },
+          "allocation": {
+            "$id": "#/properties/manure/items/properties/allocation",
+            "type": "integer",
+            "description": ":ref:`allocation` value *(Inputs → Manure → Percentage)*",
+            "default": 0,
+            "examples": [
+              70
+            ]
+          }
+        }
+      }
+    },
+    "direct_energy": {
+      "$id": "#/properties/direct_energy",
+      "type": "array",
+      "description": "Basic information about your direct energy use",
+      "items": {
+        "$id": "#/properties/direct_energy/items",
+        "type": "object",
+        "required": [
+          "source",
+          "usage",
+          "category"
+        ],
+        "properties": {
+          "usage": {
+            "type": "object",
+            "required": [
+              "value",
+              "unit"
+            ],
+            "properties": {
+              "value": {
+                "$id": "#/properties/direct-energy/items/properties/usage/properties/value",
+                "type": "number",
+                "description": "*(Fuel & Energy → Direct Energy → Energy Used)*",
+                "minimum": 0,
+                "examples": [
+                  4
+                ]
+              },
+              "unit": {
+                "$id": "#/properties/direct-energy/items/properties/usage/properties/unit",
+                "type": [
+                  "string",
+                  "integer"
+                ],
+                "description": ":ref:`unit` name or ID *(Fuel & Energy → Direct Energy → Energy Used Unit)*"
+              }
+            }
+          },
+          "category": {
+                "$id": "#/properties/direct-energy/items/properties/category",
+                "type": [
+                  "integer",
+                  "string"
+                ],
+                "description": ":ref:`energy-category` *(Fuel & Energy → Direct Energy → Category)*"
+              },
+          "source": {
+                "$id": "#/properties/direct-energy/items/properties/source",
+                "type": [
+                  "integer",
+                  "string"
+                ],
+                "description": ":ref:`direct-energy-type` *(Fuel & Energy → Direct Energy → Source)*"
+              }
+        }
+      }
+    },
+    "transport": {
+      "$id": "#/properties/transport",
+      "type": "array",
+      "description": "Basic information about your transport",
+      "items": {
+        "$id": "#/properties/transport/items",
+        "type": "object",
+        "required": [
+          "mode",
+          "weight",
+          "distance"
+        ],
+        "properties": {
+          "mode": {
+            "$id": "#/properties/transport/items/properties/mode",
+            "type": [
+              "string",
+              "integer"
+            ],
+            "description": ":ref:`transport-type` *(Transport → Mode)*",
+            "examples": [
+              "road LGV diesel (light goods vehicle <3.5t)"
+            ]
+          },
+          "weight": {
+            "type": "object",
+            "required": [
+              "value",
+              "unit"
+            ],
+            "properties": {
+              "value": {
+                "$id": "#/properties/transport/items/properties/weight/properties/value",
+                "type": "number",
+                "description": "*(Transport → Weight Value)*",
+                "minimum": 0,
+                "examples": [
+                  4
+                ]
+              },
+              "unit": {
+                "$id": "#/properties/transport/items/properties/weight/properties/unit",
+                "type": [
+                  "string",
+                  "number"
+                ],
+                "examples": [
+                  "tonne"
+                ],
+                "description": ":ref:`unit` name or ID *(Transport → Weight Value)*"
+              }
+            }
+          },
+          "distance": {
+            "type": "object",
+            "required": [
+              "value",
+              "unit"
+            ],
+            "properties": {
+              "value": {
+                "$id": "#/properties/transport/items/properties/distance/properties/value",
+                "type": "number",
+                "description": "*(Transport → Distance Value)*",
+                "minimum": 0,
+                "examples": [
+                  2000
+                ]
+              },
+              "unit": {
+                "$id": "#/properties/transport/items/properties/distance/properties/unit",
+                "type": [
+                  "string",
+                  "integer"
+                ],
+                "description": ":ref:`unit` name or ID *(Transport → Distance Value)*",
+                "examples": [
+                  "km"
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,7 +1,7 @@
 import tomllib
 from pathlib import Path
 
-CONFIG_DIR = Path(__file__).resolve().parent / "config"
+CONFIG_DIR = Path(__file__).resolve().parent 
 
 def load_toml(name: str):
     """
@@ -14,7 +14,7 @@ def load_toml(name: str):
     with open(path, "rb") as f:
         return tomllib.load(f)
 
-SCHEMA_FILE = Path(__file__).resolve().parent / "config" / "input_table.toml"
+SCHEMA_FILE = Path(__file__).resolve().parent / "input_table.toml"
 
 def load_farm_schema():
     with open(SCHEMA_FILE, "rb") as f:

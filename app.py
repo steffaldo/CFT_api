@@ -5,9 +5,10 @@ import os
 import requests
 import json
 from openpyxl import load_workbook
-from config_loader import load_toml
+from config.config_loader import load_toml
 from components.data_cleaning import *
 import streamlit_notify as stn
+from utils.api_parser import submit_new_surveys
 
 st.set_page_config(layout="wide")
 
@@ -67,7 +68,8 @@ input_schema = pd.read_csv(schema_path)
 schema_dict = {
     row.metric: {
         "cell": row.survey_mapping,
-        "type": row.types
+        "type": row.types,
+        "default": row.default_value if "default_value" in row else None
     }
     for _, row in input_schema.iterrows()
 }
@@ -99,6 +101,19 @@ for survey in survey_dump:
     for metric, info in schema_dict.items():
         try:
             value = ws[info["cell"]].value
+
+            # if value is None in (None, "", " ") use default
+            if value in (None, "", " ") and info["default"] not in (None, "", " "):
+                value = info["default"]
+            # cast to correct type
+            if info["type"] == "int":
+                value = int(value)
+            elif info["type"] == "float":
+                value = float(value)
+            elif info["type"] == "string":
+                value = str(value)
+
+
             # fwi/dmi indicator
             if ws[feed_conversion_mapping["dmi_select"]].value not in (None, "", " "):
                 dmi_conversion = False
@@ -285,6 +300,9 @@ def display_error_correction_ui(error_report, df):
     return st.session_state.corrected_df, False
 
 
+
+
+
 # -----------------------------
 # Integration with your existing code
 # -----------------------------
@@ -307,6 +325,10 @@ if not survey_loader.empty:
         
         # Display correction UI
         corrected_df, all_valid = display_error_correction_ui(error_report, resolved_df)
+
+        # Ensure numeric columns are never null
+        numeric_cols = corrected_df.select_dtypes(include=["number"]).columns.tolist()
+        corrected_df[numeric_cols] = corrected_df[numeric_cols].fillna(0)
         
         # Only show submit button when all valid
         if all_valid:
@@ -359,6 +381,7 @@ if not survey_loader.empty:
                                 )
                             
                             resp.raise_for_status()
+
                             success_count += 1
                             
                         except requests.exceptions.RequestException as e:
@@ -376,13 +399,17 @@ if not survey_loader.empty:
                     # Show results
                     if error_count == 0:
                         stn.success(f"🎉 All {success_count} record(s) uploaded successfully!")
+
+                        api_results = submit_new_surveys(corrected_df)
+                        st.write("CFT API Results")
+                        st.json(api_results)
                         
                         # 🔥 FULL RESET
-                        new_key = st.session_state.uploader_key + 1 # to drop uploaded files
-                        st.session_state.clear()
-                        st.session_state.uploader_key = new_key
-                        stn.success(f"{success_count} Surveys Uploaded and Validated! Application state reset.", icon="🚀")
-                        st.rerun()
+                        # new_key = st.session_state.uploader_key + 1 # to drop uploaded files
+                        # st.session_state.clear()
+                        # st.session_state.uploader_key = new_key
+                        # stn.success(f"{success_count} Surveys Uploaded and Validated! Application state reset.", icon="🚀")
+                        # st.rerun()
 
 
                     else:
@@ -394,23 +421,23 @@ if not survey_loader.empty:
                                 st.error(f"Row {err['row']} (Farm ID: {err['farm_id']}): {err['error']}")
 
 
+# ----- get into columns
+# def flatten_json(y, prefix=''):
+#     """
+#     Flatten a nested JSON object into a single-level dictionary with dot-separated keys.
+#     List indices are included in the keys.
+#     """
+#     out = {}
 
-# with st.form("add_row_form"):
-#     project_id = st.text_input("Project ID")
-#     description = st.text_area("Description")
-#     submitted = st.form_submit_button("Add Row")
-    
-#     if submitted:
-#         new_row = {
-#             "PROJECT_ID": project_id,
-#             "PROJECT_DESCRIPTION": description,
-#         }
-#         try:
-#             resp = requests.post(url, headers=headers, json=new_row, verify=False)
-#             resp.raise_for_status()
-#             st.success("Row added successfully! 🎉")
-#             df = fetch_table()
-#             st.dataframe(df)
-#         except requests.exceptions.RequestException as e:
-#             st.error("Failed to insert row :(")
-#             st.error(e)
+#     if isinstance(y, dict):
+#         for k, v in y.items():
+#             new_key = f"{prefix}.{k}" if prefix else k
+#             out.update(flatten_json(v, new_key))
+#     elif isinstance(y, list):
+#         for i, item in enumerate(y):
+#             new_key = f"{prefix}.{i}" if prefix else str(i)
+#             out.update(flatten_json(item, new_key))
+#     else:
+#         out[prefix] = y
+
+#     return out
