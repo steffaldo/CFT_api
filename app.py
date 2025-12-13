@@ -12,7 +12,7 @@ from utils.api_parser import submit_new_surveys
 
 st.set_page_config(layout="wide")
 
-st.title("CFT Dairy Data Upload")
+st.title("CFT Dairy Data Upload")   
 
 stn.notify()
 
