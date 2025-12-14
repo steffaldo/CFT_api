@@ -8,7 +8,7 @@ from openpyxl import load_workbook
 from config.config_loader import load_toml
 from components.data_cleaning import *
 import streamlit_notify as stn
-from utils.api_parser import submit_new_surveys
+from utils.api_parser import submit_new_surveys, flatten_json
 
 st.set_page_config(layout="wide")
 
@@ -403,6 +403,16 @@ if not survey_loader.empty:
                         api_results = submit_new_surveys(corrected_df)
                         st.write("CFT API Results")
                         st.json(api_results)
+
+                        # assuming api_results is your JSON list
+
+
+
+                        # Apply to your list of JSON objects
+                        flat_data = [flatten_json(item) for item in api_results]
+
+                        df = pd.DataFrame(flat_data)
+                        st.dataframe(df)
                         
                         # 🔥 FULL RESET
                         # new_key = st.session_state.uploader_key + 1 # to drop uploaded files
