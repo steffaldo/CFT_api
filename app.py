@@ -9,6 +9,16 @@ from config.config_loader import load_toml
 from components.data_cleaning import *
 import streamlit_notify as stn
 from utils.api_parser import submit_new_surveys
+from data.supabase import (
+    get_dairy_inputs,
+    upsert_dairy_inputs,
+    upsert_outputs_from_df,
+)
+
+# -- TEMP - identify zscalar for my dev laptop ---
+os.environ["SSL_CERT_FILE"] = r"C:\certs\zscaler_root_ca.pem"
+os.environ["REQUESTS_CA_BUNDLE"] = r"C:\certs\zscaler_root_ca.pem"
+
 
 st.set_page_config(layout="wide")
 
@@ -16,35 +26,11 @@ st.title("CFT Dairy Data Upload")
 
 stn.notify()
 
-SUPABASE_URL = st.secrets["supabase-public"]["url"]
-SUPABASE_KEY = st.secrets["supabase-public"]["key"]
-TABLE_NAME = "dairy_farm_inputs"
 
-url = f"{SUPABASE_URL}/rest/v1/{TABLE_NAME}"
 
-headers = {
-    "apikey": SUPABASE_KEY,
-    "Authorization": f"Bearer {SUPABASE_KEY}",
-    "Content-Type": "application/json",
-    "Accept": "application/json",
-    "Prefer": "return=representation"
-}
+data = get_dairy_inputs()
+df = pd.DataFrame(data)
 
-# -----------------------------
-# Fetch table
-# -----------------------------
-def fetch_table():
-    try:
-        response = requests.get(url, headers=headers, verify=False)
-        response.raise_for_status()
-        data = response.json()
-        return pd.DataFrame(data)
-    except requests.exceptions.RequestException as e:
-        st.error("Failed to fetch table :(")
-        st.error(e)
-        return pd.DataFrame()
-
-df = fetch_table()
 st.subheader("Current Table")
 st.dataframe(df)
 
@@ -57,7 +43,6 @@ survey_dump = st.file_uploader(
     "Upload surveys", accept_multiple_files=True, type="xlsx",
     key=f"uploader{st.session_state.uploader_key}"
 )
-
 
 
 # initialise mapping schema
@@ -300,7 +285,71 @@ def display_error_correction_ui(error_report, df):
     return st.session_state.corrected_df, False
 
 
+# ----- get into columns
+def flatten_cft_response(response: list) -> pd.DataFrame:
+    """
+    Flattens a CFT API response into a single wide table.
+    One row per farm, with category-level emissions expanded into columns.
+    Splits farm_identifier into farm_name and farm_year.
+    """
 
+    rows = []
+
+    for record in response:
+
+        farm_identifier = record["farm"]["farm_identifier"]
+
+
+        if "_" in farm_identifier:
+            farm_name, milk_year = farm_identifier.rsplit("_", 1)
+        else:
+            farm_name = farm_identifier
+            milk_year = None
+            st.warning("Farm identifier missing year suffix. Contact administrator.")
+
+        summary = record["summary"]
+        disagg = summary["disaggregation_totals"][0]
+
+        row = {
+            "farm_identifier": farm_identifier,
+            "farm_name": farm_name,
+            "milk_year": pd.to_numeric(milk_year, errors="coerce"),
+
+            # Overall summary
+            "emissions_total": float(summary["emissions_total"][0]),
+            "emissions_total_unit": summary["emissions_total"][1],
+            "emissions_per_fpcm": float(summary["emissions_per_fpcm"][0]),
+            "emissions_per_fpcm_unit": summary["emissions_per_fpcm"][1],
+
+            # Disaggregation totals
+            "CO2_tonnes": float(disagg["CO2"]["metric_tonnes_CO2"][0]),
+            "CO2e_from_CO2_tonnes": float(disagg["CO2"]["metric_tonnes_CO2e"][0]),
+
+            "N2O_tonnes": float(disagg["N2O"]["metric_tonnes_N2O"][0]),
+            "CO2e_from_N2O_tonnes": float(disagg["N2O"]["metric_tonnes_CO2e"][0]),
+
+            "CH4_tonnes": float(disagg["CH4"]["metric_tonnes_CH4"][0]),
+            "CO2e_from_CH4_tonnes": float(disagg["CH4"]["metric_tonnes_CO2e"][0]),
+
+            # Metadata
+            "cft_version": record["information"]["cft_version"]
+        }
+
+        # Flatten category-level emissions into wide columns
+        for item in record["total_emissions"]:
+            name = item["name"]
+
+            row[f"{name}_CO2"] = float(item["CO2"])
+            row[f"{name}_N2O"] = float(item["N2O"])
+            row[f"{name}_CH4"] = float(item["CH4"])
+            row[f"{name}_total_CO2e"] = float(item["total_CO2e"])
+            row[f"{name}_total_CO2e_per_fpcm"] = float(item["total_CO2e_per_fpcm"])
+
+        rows.append(row)
+
+    df_wide = pd.DataFrame(rows)
+
+    return df_wide
 
 
 # -----------------------------
@@ -337,7 +386,10 @@ if not survey_loader.empty:
                 st.dataframe(corrected_df)
                 
                 if st.form_submit_button("Upload to Database and Run CFT API"):
-                     # Get overwrites from duplicate decisions
+
+                    # -------------------------------------------------
+                    # Get overwrites from duplicate decisions
+                    # -------------------------------------------------
                     overwrite_ids = []
                     if 'duplicate_decisions' in st.session_state:
                         overwrite_ids = [
@@ -345,109 +397,71 @@ if not survey_loader.empty:
                             in st.session_state.duplicate_decisions.items() 
                             if decision == "overwrite"
                         ]
-                    
+
                     st.info(f"Uploading {len(corrected_df)} record(s)... ({len(overwrite_ids)} overwrites)")
-                    
-                    # Upload progress
+
                     progress_bar = st.progress(0)
-                    success_count = 0
-                    error_count = 0
-                    errors = []
-                    
-                    for idx, (i, row) in enumerate(corrected_df.iterrows()):
-                        new_row = row.to_dict()
-                        
-                        # Check if this is an overwrite
-                        farm_id = new_row.get("farm_id")
-                        is_overwrite = farm_id in overwrite_ids
-                        
-                        try:
-                            if is_overwrite:
-                                # For overwrites, use PATCH with filter
-                                patch_url = f"{url}?farm_id=eq.{farm_id}"
-                                resp = requests.patch(
-                                    patch_url, 
-                                    headers=headers, 
-                                    json=new_row, 
-                                    verify=False
-                                )
-                            else:
-                                # For new records, use POST
-                                resp = requests.post(
-                                    url, 
-                                    headers=headers, 
-                                    json=new_row, 
-                                    verify=False
-                                )
-                            
-                            resp.raise_for_status()
 
-                            success_count += 1
-                            
-                        except requests.exceptions.RequestException as e:
-                            error_count += 1
+                    # -------------------------------------------------
+                    # Build payloads
+                    # -------------------------------------------------
+                    records = corrected_df.to_dict(orient="records")
 
-                            errors.append({
-                                "row": i,
-                                "farm_id": farm_id,
-                                "error": str(e)
-                            })
-                        
-                        # Update progress
-                        progress_bar.progress((idx + 1) / len(corrected_df))
-                    
-                    # Show results
-                    if error_count == 0:
-                        stn.success(f"🎉 All {success_count} record(s) uploaded successfully!")
+                    # If you want true upsert semantics for *all* rows:
+                    # upsert_dairy_inputs(records)
 
+                    # If you want overwrite to mean "hard replace":
+                    new_rows = []
+                    overwrite_rows = []
+
+                    for r in records:
+                        farm_id = r.get("farm_id")
+                        if farm_id in overwrite_ids:
+                            overwrite_rows.append(r)
+                        else:
+                            new_rows.append(r)
+
+                    try:
+                        # -------------------------------------------------
+                        # Insert new rows
+                        # -------------------------------------------------
+                        if new_rows:
+                            upsert_dairy_inputs(new_rows)
+
+                        progress_bar.progress(0.5)
+
+                        # -------------------------------------------------
+                        # Overwrite existing rows (hard replace semantics)
+                        # -------------------------------------------------
+                        if overwrite_rows:
+                            # Easiest: upsert still works because farm_id is unique
+                            upsert_dairy_inputs(overwrite_rows)
+
+                        progress_bar.progress(1.0)
+
+                        stn.success(f"🎉 All {len(records)} record(s) uploaded successfully!")
+
+                        # -------------------------------------------------
+                        # Run CFT API
+                        # -------------------------------------------------
                         api_results = submit_new_surveys(corrected_df)
                         st.write("CFT API Results")
-                        st.json(api_results)
 
-                        # assuming api_results is your JSON list
+                        # Flatten
+                        df_wide = flatten_cft_response(api_results)
+                        st.write(df_wide)
 
+                        # -------------------------------------------------
+                        # Write outputs to Supabase
+                        # -------------------------------------------------
+                        upsert_outputs_from_df(df_wide)
 
-
-                        # Apply to your list of JSON objects
-                        # flat_data = [flatten_json(item) for item in api_results]
-
-                        # df = pd.DataFrame(flat_data)
-                        # st.dataframe(df)
-                        
-                        # 🔥 FULL RESET
-                        # new_key = st.session_state.uploader_key + 1 # to drop uploaded files
-                        # st.session_state.clear()
-                        # st.session_state.uploader_key = new_key
-                        # stn.success(f"{success_count} Surveys Uploaded and Validated! Application state reset.", icon="🚀")
-                        # st.rerun()
+                    except Exception as e:
+                        st.error("❌ Failed to upload records to Supabase")
+                        st.exception(e)
 
 
-                    else:
-                        st.warning(f"⚠️ Uploaded {success_count} record(s), but {error_count} failed")
-                        
-                        # Show errors
-                        with st.expander("View Errors"):
-                            for err in errors:
-                                st.error(f"Row {err['row']} (Farm ID: {err['farm_id']}): {err['error']}")
 
 
-# ----- get into columns
-# def flatten_json(y, prefix=''):
-#     """
-#     Flatten a nested JSON object into a single-level dictionary with dot-separated keys.
-#     List indices are included in the keys.
-#     """
-#     out = {}
 
-#     if isinstance(y, dict):
-#         for k, v in y.items():
-#             new_key = f"{prefix}.{k}" if prefix else k
-#             out.update(flatten_json(v, new_key))
-#     elif isinstance(y, list):
-#         for i, item in enumerate(y):
-#             new_key = f"{prefix}.{i}" if prefix else str(i)
-#             out.update(flatten_json(item, new_key))
-#     else:
-#         out[prefix] = y
 
-#     return out
