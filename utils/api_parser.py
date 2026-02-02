@@ -243,10 +243,6 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 def call_cft_api(row):
     payload = process_single_row(row)
 
-    # temp
-    st.write("Payload to be sent to CFT API:")
-    st.json(payload)
-
     
     try:
         response = requests.post(

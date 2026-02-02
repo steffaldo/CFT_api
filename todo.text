@@ -1,2 +1,4 @@
 - ensure fwi dmi part doest conflix with valdation because its different in db after validation
 
+ - values car be none they have to be 0. mak all vells 0
+ - double check if grazing amount is auto calculated or not or if we need to do it based on assumptions
