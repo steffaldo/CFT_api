@@ -13,6 +13,7 @@ display_name = "Grass fresh managed - on farm"
 certified = false
 region_name = "Global (world)"
 cft_name = "grass_fresh_managed"
+fwi_to_dmi = 1
 
 [[feed]]
 cft_id = 8
@@ -20,6 +21,7 @@ display_name = "Maize silage"
 certified = false
 region_name = "Global (world)"
 cft_name = "maize_silage"
+fwi_to_dmi = 1
 
 [[feed]]
 cft_id = 6
@@ -27,6 +29,7 @@ display_name = "Grass silage - on farm"
 certified = false
 region_name = "Global (world)"
 cft_name = "grass_silage"
+fwi_to_dmi = 1
 
 [[feed]]
 cft_id = 9
@@ -34,6 +37,7 @@ display_name = "Lucerne / Alfalfa silage"
 certified = false
 region_name = "Global (world)"
 cft_name = "lucerne_alfalfa_silage"
+fwi_to_dmi = 1
 
 [[feed]]
 cft_id = 4
@@ -41,6 +45,7 @@ display_name = "Grass hay - on farm"
 certified = false
 region_name = "Global (world)"
 cft_name = "grass_hay"
+fwi_to_dmi = 1
 
 [[feed]]
 cft_id = 11
@@ -48,6 +53,7 @@ display_name = "Straw"
 certified = false
 region_name = "Global (world)"
 cft_name = "straw"
+fwi_to_dmi = 1
 
 [[feed]]
 cft_id = 13
@@ -55,6 +61,7 @@ display_name = "Wheat"
 certified = false
 region_name = "Poland"
 cft_name = "wheat"
+fwi_to_dmi = 1
 
 [[feed]]
 cft_id = 20
@@ -62,6 +69,7 @@ display_name = "Other cereals"
 certified = false
 region_name = "European Union + EFTA"
 cft_name = "other_cereals"
+fwi_to_dmi = 1
 
 [[feed]]
 cft_id = 16
@@ -69,6 +77,7 @@ display_name = "Oats"
 certified = false
 region_name = "Poland"
 cft_name = "oats"
+fwi_to_dmi = 1
 
 [[feed]]
 cft_id = 18
@@ -76,6 +85,7 @@ display_name = "Rye"
 certified = false
 region_name = "Poland"
 cft_name = "rye"
+fwi_to_dmi = 1
 
 [[feed]]
 cft_id = 14
@@ -83,6 +93,7 @@ display_name = "Barley"
 certified = false
 region_name = "Poland"
 cft_name = "barley"
+fwi_to_dmi = 1
 
 [[feed]]
 cft_id = 15
@@ -90,6 +101,7 @@ display_name = "Maize / corn grain"
 certified = false
 region_name = "European Union + EFTA"
 cft_name = "maize_grain"
+fwi_to_dmi = 1
 
 [[feed]]
 cft_id = 31
@@ -97,6 +109,7 @@ display_name = "Rapeseed cake/meal"
 certified = false
 region_name = "Poland"
 cft_name = "rapeseed_meal"
+fwi_to_dmi = 1
 
 [[feed]]
 cft_id = 27
@@ -104,6 +117,7 @@ display_name = "Compound dairy feed: default (15% soy)"
 certified = false
 region_name = "Global (world)"
 cft_name = "compound_15_soy"
+fwi_to_dmi = 1
 
 [[feed]]
 cft_id = 29
@@ -111,6 +125,7 @@ display_name = "Compound dairy feed: low (8%) soy, high protein"
 certified = false
 region_name = "Global (world)"
 cft_name = "compound_8_soy"
+fwi_to_dmi = 1
 
 [[feed]]
 cft_id = 28
@@ -118,6 +133,7 @@ display_name = "Compound dairy feed: high (46%) soy, high protein"
 certified = false
 region_name = "Global (world)"
 cft_name = "compound_46_soy"
+fwi_to_dmi = 1
 
 [[feed]]
 cft_id = 30
@@ -125,6 +141,7 @@ display_name = "Soybean cake/meal"
 certified = false
 region_name = "Global (world)"
 cft_name = "soybean_meal"
+fwi_to_dmi = 1
 
 [[feed]]
 cft_id = 36
@@ -132,6 +149,7 @@ display_name = "Soybean"
 certified = false
 region_name = "Poland"
 cft_name = "soybean"
+fwi_to_dmi = 1
 
 [[feed]]
 cft_id = 42
@@ -139,6 +157,7 @@ display_name = "Fodder beet"
 certified = false
 region_name = "Poland"
 cft_name = "fodder_beet"
+fwi_to_dmi = 1
 
 [[feed]]
 cft_id = 48
@@ -146,6 +165,7 @@ display_name = "Sugar beet pulp"
 certified = false
 region_name = "Poland"
 cft_name = "sugar_beet_pulp"
+fwi_to_dmi = 1
 
 [[feed]]
 cft_id = 78
@@ -153,6 +173,7 @@ display_name = "Molasses"
 certified = false
 region_name = "Poland"
 cft_name = "molasses"
+fwi_to_dmi = 1
 
 [[feed]]
 cft_id = 23
@@ -160,6 +181,7 @@ display_name = "Dried distillers grains (DDGS) / Draff"
 certified = false
 region_name = "European Union + EFTA"
 cft_name = "dried_distillers_grains"
+fwi_to_dmi = 1
 
 [[feed]]
 cft_id = 24
@@ -167,6 +189,7 @@ display_name = "Brewer’s grain"
 certified = false
 region_name = "European Union + EFTA"
 cft_name = "brewers_grain"
+fwi_to_dmi = 1
 
 [[feed]]
 cft_id = 35
@@ -174,6 +197,7 @@ display_name = "Other oil cake/meal"
 certified = false
 region_name = "Global (world)"
 cft_name = "other_oil_meal"
+fwi_to_dmi = 1
 
 [[feed]]
 cft_id = 80
@@ -181,6 +205,7 @@ display_name = "Mineral mix"
 certified = false
 region_name = "European Union + EFTA"
 cft_name = "mineral_mix"
+fwi_to_dmi = 1
 
 [[feed]]
 cft_id = 75
@@ -188,3 +213,4 @@ display_name = "Bypass fat"
 certified = false
 region_name = "European Union + EFTA"
 cft_name = "bypass_fat"
+fwi_to_dmi = 1

@@ -16,8 +16,8 @@ from data.supabase import (
 )
 
 # -- TEMP - identify zscalar for my dev laptop ---
-os.environ["SSL_CERT_FILE"] = r"C:\certs\zscaler_root_ca.pem"
-os.environ["REQUESTS_CA_BUNDLE"] = r"C:\certs\zscaler_root_ca.pem"
+# os.environ["SSL_CERT_FILE"] = r"C:\certs\zscaler_root_ca.pem"
+# os.environ["REQUESTS_CA_BUNDLE"] = r"C:\certs\zscaler_root_ca.pem"
 
 
 st.set_page_config(layout="wide")
@@ -43,7 +43,6 @@ survey_dump = st.file_uploader(
     "Upload surveys", accept_multiple_files=True, type="xlsx",
     key=f"uploader{st.session_state.uploader_key}"
 )
-
 
 # initialise mapping schema
 schema_path = os.path.join("schema", "input_schema_mapping.csv")
@@ -74,6 +73,94 @@ feed_conversion_mapping = {
     "feed_period_day_custom": "D67"
 }
 
+
+
+# feed lookup dict
+feed_items = load_toml("feed.toml")["feed"]
+feed_meta = {
+    f["cft_name"]: f
+    for f in feed_items
+}
+
+# feed normalisation function
+def normalize_feed_value(
+    *,
+    value,
+    metric,
+    feed_meta,
+    row_data,
+    dmi_conversion,
+    herd_feed_indicator,
+    multiday_feed_indicator,
+    debug=False,
+):
+    """
+    Normalizes feed values to kgDMI_head_day.
+
+    Expects metric format:
+    feed.<feed_name>.<hs_name>.kgDMI_head_day
+    """
+
+    # ---- parse metric ----
+    try:
+        _, feed_name, hs_name, _ = metric.split(".", 3)
+    except ValueError:
+        st.error(f"Invalid feed metric format: {metric}")
+        st.stop()
+
+    feed_info = feed_meta.get(feed_name)
+    if feed_info is None:
+        st.error(f"Unknown feed type in column name: {feed_name}")
+        st.stop()
+
+    # ---- 1. FWI → DMI ----
+    if dmi_conversion:
+        conversion_factor = feed_info.get("fwi_to_dmi")
+
+        if debug:
+            st.write(f"FWI→DMI factor for {feed_name}:", conversion_factor)
+
+        if conversion_factor is None:
+            st.error(f"Missing FWI→DMI conversion factor for feed: {feed_name}")
+            st.stop()
+
+        value = value * conversion_factor
+
+        if debug:
+            st.write(f"After FWI→DMI ({feed_name}):", value)
+
+    # ---- 2. herd → head ----
+    if herd_feed_indicator:
+        herd_count_key = f"{hs_name}.herd_count"
+        herd_count = row_data.get(herd_count_key)
+
+        if debug:
+            st.write(f"Herd count for {hs_name}:", herd_count)
+
+        if herd_count is None or herd_count <= 0:
+            st.error(
+                f"Herd count missing or invalid for herd type '{hs_name}' "
+                f"(expected column '{herd_count_key}')"
+            )
+            st.stop()
+
+        value = value / herd_count
+
+        if debug:
+            st.write(f"After herd→head ({hs_name}):", value)
+
+    # ---- 3. multi-day → per-day ----
+    if multiday_feed_indicator > 1:
+        value = value / multiday_feed_indicator
+
+        if debug:
+            st.write(
+                f"After multi-day→day (/{multiday_feed_indicator}):",
+                value
+            )
+
+    return value
+
 # Loop and ingest each survey
 for survey in survey_dump:
     # read each notebook into a pandas df, ensuring correct values and mapping when they go in
@@ -84,8 +171,12 @@ for survey in survey_dump:
     row_data = {}
 
     for metric, info in schema_dict.items():
+        st.write("--------------------------")
+        st.write("Metric: ", metric, "Info: ", info)
         try:
             value = ws[info["cell"]].value
+
+            st.write("Raw value from cell: ", value)
 
             # if value is None in (None, "", " ") use default
             if value in (None, "", " ") and info["default"] not in (None, "", " "):
@@ -99,9 +190,12 @@ for survey in survey_dump:
                 value = str(value)
 
 
-            # fwi/dmi indicator
+            # -------- fwi/dmi indicator ----------
+
+            # if already dmi then downt convert 
             if ws[feed_conversion_mapping["dmi_select"]].value not in (None, "", " "):
                 dmi_conversion = False
+            # if fwi then convert into dmi
             elif ws[feed_conversion_mapping["fwi_select"]].value not in (None, "", " "):
                 dmi_conversion = True
             else:
@@ -110,14 +204,14 @@ for survey in survey_dump:
 
             # feed by animal or herd
             if ws[feed_conversion_mapping["feed_per_animal"]].value not in (None, "", " "):
-                herd_feed_inicator = False
+                herd_feed_indicator = False
             elif ws[feed_conversion_mapping["feed_per_herd"]].value not in (None, "", " "):
-                herd_feed_inicator = True
+                herd_feed_indicator = True
             else:
                 st.error("One or more surveys have an no indication of whether feed data is provided at a single cow or herd level")
                 st.stop() 
 
-            # feed by animal or herd
+            # feed by day or multiday
             if ws[feed_conversion_mapping["feed_period_day_single"]].value not in (None, "", " "):
                 multiday_feed_inicator = 1
             elif ws[feed_conversion_mapping["feed_period_day_custom"]].value not in (None, "", " "):
@@ -132,26 +226,27 @@ for survey in survey_dump:
                 st.stop() 
 
             if metric.startswith("feed."):
-                if dmi_conversion is False:
-                    # value * conversion
-                    pass
-                if herd_feed_inicator:
-                    # value / herd size
-                    pass
-                if multiday_feed_indicator > 1:
-                    value = value / multiday_feed_indicator
+                value = normalize_feed_value(
+                    value=value,
+                    metric=metric,
+                    feed_meta=feed_meta,
+                    row_data=row_data,
+                    dmi_conversion=dmi_conversion,
+                    herd_feed_indicator=herd_feed_indicator,
+                    multiday_feed_indicator=multiday_feed_indicator,
+                    debug=True,  # set False later
+                )
 
         except:
             value = None
 
         row_data[metric] = value
 
-    # TODO also ensure that the fwi dmi data is done with the dates etc
+    # TODO also ensure that the fwi dmi data is done with the dates etc <----?????
 
     survey_loader = pd.concat([survey_loader, pd.DataFrame([row_data])], ignore_index=True)
 
 
-feed_items = load_toml("feed.toml")["feed"]
 herd_sections = load_toml("herd.toml")["herd_section"]
 fertilizers = load_toml("fertilizer.toml")["fertilzier"]
 herd_varieties = load_toml("herd.toml")["herd_variety"]
@@ -162,7 +257,6 @@ def validation_rules():
         "herd_sections": [s["display_name"] for s in herd_sections],
         "herd_varieties": [s["cft_name"] for s in herd_varieties]
     }
-
 
 
 ## before sending make sure all display names converted to api names
