@@ -90,7 +90,7 @@ def validate_dataframe(df, validation_rules):
     """Validate entire dataframe and return error report"""
     error_report = []
     
-    for idx, row in df.iterrows():
+    for _, row in df.iterrows():
         row_errors = {}
         
         for col_name, rules in validation_rules.items():
@@ -109,7 +109,7 @@ def validate_dataframe(df, validation_rules):
         
         if row_errors:
             error_report.append({
-                "row_index": idx,
+                "survey_id": row.get("survey_id"),
                 "row_data": row.to_dict(),
                 "errors": row_errors
             })

@@ -3,6 +3,8 @@ from data.supabase import get_dairy_inputs, get_impact_summary
 import pandas as pd
 import plotly.express as px
 
+from utils.api_parser import HERD_SECTIONS
+
 st.set_page_config(layout="wide")
 st.title("Farm Impact Page")
 
@@ -134,3 +136,41 @@ mode = st.radio(
 
 fig = build_emissions_figure(summary_melted, mode)
 st.plotly_chart(fig, use_container_width=True)
+
+# show some of the inputs of selected farm
+st.header("Input Data for Selected Farm")
+selected_farm_inputs = farms[farms["farm_id"] == selected_farm_id]
+selected_farm_inputs['total_cows'] = selected_farm_inputs[[f"{herd['cft_name']}.herd_count" for herd in HERD_SECTIONS]].sum(axis=1)
+
+
+st.dataframe(
+    selected_farm_inputs[[
+        "milk_year",
+        "main_breed_variety",
+        "total_milk_production_litres",
+        "total_cows",
+    ]],
+    key="selected_farm_inputs_table",
+    hide_index=True,
+)
+
+# cow breakdown
+st.subheader("Cow Breakdown by Herd Section")
+cow_columns = []
+for herd in HERD_SECTIONS:
+    cow_columns.append(f"{herd['cft_name']}.herd_count")
+cow_breakdown = selected_farm_inputs[cow_columns].T
+cow_breakdown.columns = ["cow_count"]
+cow_breakdown["herd_section"] = cow_breakdown.index.str.split(".").str[0]
+cow_breakdown = cow_breakdown[["herd_section", "cow_count"]]    
+fig_cow = px.bar(
+    cow_breakdown,
+    x="herd_section",
+    y="cow_count",
+    title="Cow Breakdown by Herd Section",
+    labels={
+        "herd_section": "Herd Section",
+        "cow_count": "Number of Cows",
+    },
+)
+st.plotly_chart(fig_cow, use_container_width=True)

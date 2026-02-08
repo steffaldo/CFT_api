@@ -44,13 +44,13 @@ def _replace_rows(table: str, id_column: str, id_value: Any, rows: List[Dict]):
 # ------------------------------------------------------------------
 
 def get_dairy_inputs(
-    farm_id: Optional[str] = None,
+    survey_id: Optional[str] = None,
     limit: Optional[int] = None,
 ):
     query = supabase.table(TABLE_INPUTS).select("*")
 
-    if farm_id is not None:
-        query = query.eq("farm_id", farm_id)
+    if survey_id is not None:
+        query = query.eq("survey_id", survey_id)
 
     if limit is not None:
         query = query.limit(limit)
@@ -69,7 +69,7 @@ def insert_dairy_input(row: Dict):
     return res.data
 
 
-def update_dairy_input(farm_id: str, updates: Dict):
+def update_dairy_input(survey_id: str, updates: Dict):
     updates = {
         **updates,
         "last_updated": _now(),
@@ -77,12 +77,12 @@ def update_dairy_input(farm_id: str, updates: Dict):
 
     supabase.table(TABLE_INPUTS) \
         .update(updates) \
-        .eq("farm_id", farm_id) \
+        .eq("survey_id", survey_id) \
         .execute()
 
 
-def delete_dairy_input(farm_id: str):
-    supabase.table(TABLE_INPUTS).delete().eq("farm_id", farm_id).execute()
+def delete_dairy_input(survey_id: str):
+    supabase.table(TABLE_INPUTS).delete().eq("survey_id", survey_id).execute()
 
 
 def upsert_dairy_inputs(rows: List[Dict]):
@@ -90,7 +90,7 @@ def upsert_dairy_inputs(rows: List[Dict]):
     Upsert multiple dairy input rows.
 
     Assumes:
-      - farm_id is a unique or primary key
+      - survey_id is a unique or primary key
     """
 
     if not rows:
@@ -105,7 +105,7 @@ def upsert_dairy_inputs(rows: List[Dict]):
 
     supabase.table(TABLE_INPUTS).upsert(
         payload,
-        on_conflict="farm_id",
+        on_conflict="survey_id",
     ).execute()
 
 
@@ -114,13 +114,13 @@ def upsert_dairy_inputs(rows: List[Dict]):
 # ------------------------------------------------------------------
 
 def get_dairy_outputs(
-    farm_identifier: Optional[str] = None,
+    survey_id: Optional[str] = None,
     limit: Optional[int] = None,
 ):
     query = supabase.table(TABLE_OUTPUTS).select("*")
 
-    if farm_identifier is not None:
-        query = query.eq("farm_identifier", farm_identifier)
+    if survey_id is not None:
+        query = query.eq("survey_id", survey_id)
 
     if limit is not None:
         query = query.limit(limit)
@@ -130,11 +130,11 @@ def get_dairy_outputs(
 
 
 def replace_dairy_outputs(
-    farm_identifier: str,
+    survey_id: str,
     rows: List[Dict],
 ):
     """
-    Hard replace all output rows for a given farm_identifier.
+    Hard replace all output rows for a given survey_id.
     """
 
     if not rows:
@@ -144,14 +144,14 @@ def replace_dairy_outputs(
     for r in rows:
         payload.append({
             **r,
-            "farm_identifier": farm_identifier,
+            "survey_id": survey_id,
             "last_updated": _now(),
         })
 
-    # delete everything for this farm
+    # delete everything for this survey
     supabase.table(TABLE_OUTPUTS) \
         .delete() \
-        .eq("farm_identifier", farm_identifier) \
+        .eq("survey_id", survey_id) \
         .execute()
 
     # insert fresh state
@@ -163,7 +163,7 @@ def upsert_dairy_outputs(rows: List[Dict]):
     Upsert flattened CFT output rows.
 
     Assumes:
-      - farm_identifier is unique or part of a unique constraint
+      - survey_id is unique or part of a unique constraint
     """
 
     if not rows:
@@ -178,7 +178,7 @@ def upsert_dairy_outputs(rows: List[Dict]):
 
     supabase.table(TABLE_OUTPUTS).upsert(
         payload,
-        on_conflict="farm_identifier,milk_year",
+        on_conflict="survey_id",
     ).execute()
 
 

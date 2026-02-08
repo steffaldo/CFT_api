@@ -250,7 +250,7 @@ def call_cft_api(row):
             json=payload,
             headers=HEADERS,
             verify=False,
-            timeout=10
+            timeout=100
         )
         response.raise_for_status()
         return response.json()

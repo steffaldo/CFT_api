@@ -14,6 +14,11 @@ from data.supabase import (
     upsert_dairy_inputs,
     upsert_outputs_from_df,
 )
+import uuid
+import unicodedata
+import re
+
+
 
 # -- TEMP - identify zscalar for my dev laptop ---
 # os.environ["SSL_CERT_FILE"] = r"C:\certs\zscaler_root_ca.pem"
@@ -26,10 +31,11 @@ st.title("CFT Dairy Data Upload")
 
 stn.notify()
 
-
-
 data = get_dairy_inputs()
 df = pd.DataFrame(data)
+
+herd_sections = load_toml("herd.toml")["herd_section"]
+herd_varieties = load_toml("herd.toml")["herd_variety"]
 
 st.subheader("Current Table")
 st.dataframe(df)
@@ -37,7 +43,6 @@ st.dataframe(df)
 # ---- Drop files
 if "uploader_key" not in st.session_state:
     st.session_state.uploader_key = 0
-
 
 survey_dump = st.file_uploader(
     "Upload surveys", accept_multiple_files=True, type="xlsx",
@@ -73,14 +78,22 @@ feed_conversion_mapping = {
     "feed_period_day_custom": "D67"
 }
 
-
-
 # feed lookup dict
 feed_items = load_toml("feed.toml")["feed"]
 feed_meta = {
     f["cft_name"]: f
     for f in feed_items
 }
+
+# Cleaner function for invisible values in cells
+def cell_has_value(cell):
+    if cell is None:
+        return False
+    if pd.isna(cell):
+        return False
+    if isinstance(cell, str):
+        return cell.strip() != ""
+    return True
 
 # feed normalisation function
 def normalize_feed_value(
@@ -112,6 +125,7 @@ def normalize_feed_value(
     if feed_info is None:
         st.error(f"Unknown feed type in column name: {feed_name}")
         st.stop()
+
 
     # ---- 1. FWI → DMI ----
     if dmi_conversion:
@@ -161,6 +175,23 @@ def normalize_feed_value(
 
     return value
 
+# text slugify function for farm names
+def slugify(text: str) -> str:
+    # Normalize accented characters → ASCII
+    text = unicodedata.normalize("NFKD", text)
+    text = text.encode("ascii", "ignore").decode("ascii")
+
+    # Lowercase
+    text = text.lower()
+
+    # Replace non-alphanumeric with hyphens
+    text = re.sub(r"[^a-z0-9]+", "-", text)
+
+    # Trim hyphens from start/end
+    text = text.strip("-")
+
+    return text
+
 # Loop and ingest each survey
 for survey in survey_dump:
     # read each notebook into a pandas df, ensuring correct values and mapping when they go in
@@ -170,61 +201,100 @@ for survey in survey_dump:
 
     row_data = {}
 
+    # ---- Hard Checkpoint: farm_id must exist ----
+    farm_id_cell = schema_dict["farm_id"]["cell"]
+    raw_farm_id = ws[farm_id_cell].value
+    if not cell_has_value(raw_farm_id):
+        st.error(
+            f"❌ {survey.name} was skipped: missing required Farm Name "
+            f"(cell {farm_id_cell}). Update the file and re-upload."
+        )
+        continue
+
+    # ---- Hard Checkpoint: milk_year must exist ----
+    milk_year_cell = schema_dict["milk_year"]["cell"]
+    raw_milk_year = ws[milk_year_cell].value
+    if not cell_has_value(raw_milk_year):
+        st.error(
+            f"❌ {survey.name} was skipped: missing required milk_year "
+            f"(cell {milk_year_cell}). Update the file and re-upload."
+        )
+        continue
+
+    # Iterate through each metric in the schema and extract values
     for metric, info in schema_dict.items():
-        st.write("--------------------------")
-        st.write("Metric: ", metric, "Info: ", info)
         try:
             value = ws[info["cell"]].value
 
-            st.write("Raw value from cell: ", value)
-
-            # if value is None in (None, "", " ") use default
-            if value in (None, "", " ") and info["default"] not in (None, "", " "):
+            # apply default if no value provided
+            if not cell_has_value(value) and cell_has_value(info["default"]):
                 value = info["default"]
+
             # cast to correct type
             if info["type"] == "int":
-                value = int(value)
+                value = int(value) if cell_has_value(value) else None
             elif info["type"] == "float":
-                value = float(value)
+                value = float(value) if cell_has_value(value) else None
             elif info["type"] == "string":
-                value = str(value)
+                if not cell_has_value(value):
+                    value = None
+                else:
+                    value = str(value).strip()
 
+            # ---- Special handling for feed metrics ----
+            # 1. Convert feed values to standard DMI head day if applicable
+            dmi_selected = cell_has_value(ws[feed_conversion_mapping["dmi_select"]].value)
+            fwi_selected = cell_has_value(ws[feed_conversion_mapping["fwi_select"]].value)
 
-            # -------- fwi/dmi indicator ----------
+            if dmi_selected and fwi_selected:
+                st.error(f"{survey.name} has both DMI and FWI selected as feed input types - please correct to have only one selected")
+                st.stop()
 
-            # if already dmi then downt convert 
-            if ws[feed_conversion_mapping["dmi_select"]].value not in (None, "", " "):
+            # if already dmi then don't convert 
+            if dmi_selected:
                 dmi_conversion = False
             # if fwi then convert into dmi
-            elif ws[feed_conversion_mapping["fwi_select"]].value not in (None, "", " "):
+            elif fwi_selected:
                 dmi_conversion = True
             else:
-                st.error("One or more surveys have an no indication of whether feed data is provided in FWI or DMI")
+                st.error(f"{survey.name} has no indication of whether feed data is provided in FWI or DMI")
                 st.stop() 
 
-            # feed by animal or herd
-            if ws[feed_conversion_mapping["feed_per_animal"]].value not in (None, "", " "):
+            # 2. Convert feed values to standard DMI head day if applicable
+            animal_selected = cell_has_value(ws[feed_conversion_mapping["feed_per_animal"]].value)
+            herd_selected = cell_has_value(ws[feed_conversion_mapping["feed_per_herd"]].value)
+
+            if animal_selected and herd_selected:
+                st.error(f"{survey.name} has both per animal and per herd feed data - please correct to have only one selected")
+                st.stop()
+            elif animal_selected:
                 herd_feed_indicator = False
-            elif ws[feed_conversion_mapping["feed_per_herd"]].value not in (None, "", " "):
+            elif herd_selected:
                 herd_feed_indicator = True
             else:
-                st.error("One or more surveys have an no indication of whether feed data is provided at a single cow or herd level")
+                st.error(f"{survey.name} has no indication of whether feed data is provided at a single cow or herd level")
                 st.stop() 
 
-            # feed by day or multiday
-            if ws[feed_conversion_mapping["feed_period_day_single"]].value not in (None, "", " "):
-                multiday_feed_inicator = 1
-            elif ws[feed_conversion_mapping["feed_period_day_custom"]].value not in (None, "", " "):
+            # 3. Identify if feed data is for single day or multiple days (if multiple then convert to per day)
+            day_selected = cell_has_value(ws[feed_conversion_mapping["feed_period_day_single"]].value)
+            custom_day_selected = cell_has_value(ws[feed_conversion_mapping["feed_period_day_custom"]].value)
 
+            if day_selected and custom_day_selected:
+                st.error(f"{survey.name} has both single day and multiple day feed data - please correct to have only one selected")
+                st.stop()
+            elif day_selected:
+                multiday_feed_indicator = 1
+            elif custom_day_selected:
                 if isinstance(ws[feed_conversion_mapping["feed_period_day_custom"]].value, int):
                     multiday_feed_indicator = ws[feed_conversion_mapping["feed_period_day_custom"]].value
                 else:
                     st.error("Feeding period for multiple days must be an integer.")
                     st.stop()
             else:
-                st.error("One or more surveys have an no indication of whether feed data is provided at a single cow or herd level")
+                st.error(f"{survey.name} has no indication of whether feed data is provided for a single day or multiple days")
                 st.stop() 
 
+            # Convert feed values based on indicators
             if metric.startswith("feed."):
                 value = normalize_feed_value(
                     value=value,
@@ -234,22 +304,29 @@ for survey in survey_dump:
                     dmi_conversion=dmi_conversion,
                     herd_feed_indicator=herd_feed_indicator,
                     multiday_feed_indicator=multiday_feed_indicator,
-                    debug=True,  # set False later
+                    debug=False,  
                 )
 
-        except:
+            # ---- Normalize Farm Id / Name ----
+            if metric == "farm_id" and cell_has_value(value):
+                value = slugify(value)
+
+        except Exception as e:
+            st.error(f"{survey.name} failed on metric {metric}: {e}")
             value = None
 
         row_data[metric] = value
 
-    # TODO also ensure that the fwi dmi data is done with the dates etc <----?????
 
+    farm_id = row_data.get("farm_id")
+    milk_year = row_data.get("milk_year")
+
+    # farm_id + milk_year are required at this point
+    row_data["survey_id"] = f"{str(farm_id).strip()}_{int(milk_year)}"
+
+    # Append the extracted and transformed data for this survey to the loader dataframe
     survey_loader = pd.concat([survey_loader, pd.DataFrame([row_data])], ignore_index=True)
 
-
-herd_sections = load_toml("herd.toml")["herd_section"]
-fertilizers = load_toml("fertilizer.toml")["fertilzier"]
-herd_varieties = load_toml("herd.toml")["herd_variety"]
 
 
 def validation_rules():
@@ -259,123 +336,119 @@ def validation_rules():
     }
 
 
-## before sending make sure all display names converted to api names
-
-
-
 # -----------------------------
 # Streamlit UI for Corrections
 # -----------------------------
 def display_error_correction_ui(error_report, df):
-    """Display interactive UI for correcting errors"""
-    
     if not error_report:
         st.success("✅ All data passed validation!")
         return df, True
-    
+
     st.warning(f"⚠️ Found {len(error_report)} rows with data quality issues")
-    
-    # Initialize session state for tracking corrections
-    if 'current_error_idx' not in st.session_state:
+
+    # Reset state if the underlying df changes (simple + reliable)
+    df_sig = tuple(df["survey_id"].astype(str).tolist())
+    if st.session_state.get("dq_df_sig") != df_sig:
+        st.session_state.dq_df_sig = df_sig
         st.session_state.current_error_idx = 0
-    if 'corrected_df' not in st.session_state:
         st.session_state.corrected_df = df.copy()
-    
-    # Get current error
+
     current_idx = st.session_state.current_error_idx
-    
+
     if current_idx >= len(error_report):
         st.success("✅ All errors reviewed!")
         return st.session_state.corrected_df, True
-    
+
     current_error = error_report[current_idx]
-    row_idx = current_error["row_index"]
-    
-    # Display progress
+    survey_id = current_error.get("survey_id")
+
+    if not survey_id:
+        st.error("Internal error: survey_id missing from validation error")
+        st.stop()
+
+    matches = st.session_state.corrected_df.index[
+        st.session_state.corrected_df["survey_id"] == survey_id
+    ]
+
+    if len(matches) != 1:
+        st.error(f"Internal error: expected 1 row for survey_id '{survey_id}', found {len(matches)}")
+        st.stop()
+
+    row_idx = matches[0]
+
     st.progress((current_idx + 1) / len(error_report))
     st.write(f"**Error {current_idx + 1} of {len(error_report)}**")
-    
-    # Show row identifier
-    identifier = current_error["row_data"].get("farm_name", f"Row {row_idx}")
+
+    identifier = current_error["row_data"].get("farm_name", survey_id)
     st.error(f"### ❌ {identifier} has {len(current_error['errors'])} error(s)")
-    
-    # Display each error with correction input
+
     corrections = {}
-    
+
     for col_name, error_info in current_error["errors"].items():
         with st.container():
             st.markdown(f"**Column: `{col_name}`**")
-            
+
             col1, col2 = st.columns([1, 2])
-            
+
             with col1:
                 st.write("**Current value:**")
                 st.code(str(error_info["current_value"]))
-                
                 st.write("**Issues:**")
                 for err in error_info["errors"]:
                     st.write(f"- {err}")
-            
+
             with col2:
-                st.write("**Corrected value:**")
-                
-                # Determine input type based on rules
                 rules = error_info["rules"]
-                
+
                 if rules.get("type") == "categorical":
                     corrected = st.selectbox(
                         f"Fix {col_name}",
                         options=rules["allowed_values"],
-                        key=f"fix_{row_idx}_{col_name}",
-                        label_visibility="collapsed"
+                        key=f"fix_{survey_id}_{col_name}",
+                        label_visibility="collapsed",
                     )
                 elif rules.get("type") in ["numeric", "integer"]:
+                    initial = float(error_info["current_value"]) if pd.notna(error_info["current_value"]) else 0.0
                     corrected = st.number_input(
                         f"Fix {col_name}",
-                        value=float(error_info["current_value"]) if pd.notna(error_info["current_value"]) else 0.0,
-                        min_value=rules.get("min", None),
-                        max_value=rules.get("max", None),
-                        key=f"fix_{row_idx}_{col_name}",
-                        label_visibility="collapsed"
+                        value=initial,
+                        min_value=rules.get("min"),
+                        max_value=rules.get("max"),
+                        key=f"fix_{survey_id}_{col_name}",
+                        label_visibility="collapsed",
                     )
                 else:
                     corrected = st.text_input(
                         f"Fix {col_name}",
                         value=str(error_info["current_value"]) if pd.notna(error_info["current_value"]) else "",
-                        key=f"fix_{row_idx}_{col_name}",
-                        label_visibility="collapsed"
+                        key=f"fix_{survey_id}_{col_name}",
+                        label_visibility="collapsed",
                     )
-                
+
                 corrections[col_name] = corrected
-            
+
             st.divider()
-    
-    # Action buttons
+
     col1, col2, col3 = st.columns([1, 1, 1])
-    
+
     with col1:
-        # Only show back button if not on first error
-        if current_idx > 0:
-            if st.button("⬅️ Previous", use_container_width=True):
-                st.session_state.current_error_idx -= 1
-                st.rerun()
-    
+        if current_idx > 0 and st.button("⬅️ Previous", use_container_width=True):
+            st.session_state.current_error_idx -= 1
+            st.rerun()
+
     with col2:
         if st.button("✅ Apply & Continue", use_container_width=True, type="primary"):
-            # Apply corrections to dataframe
             for col_name, value in corrections.items():
                 st.session_state.corrected_df.at[row_idx, col_name] = value
-            
-            # Move to next error
             st.session_state.current_error_idx += 1
             st.rerun()
-    
+
     with col3:
         if st.button("🔄 Reset All", use_container_width=True):
             st.session_state.current_error_idx = 0
             st.session_state.corrected_df = df.copy()
             st.rerun()
-    
+
     return st.session_state.corrected_df, False
 
 
@@ -395,9 +468,9 @@ def flatten_cft_response(response: list) -> pd.DataFrame:
 
 
         if "_" in farm_identifier:
-            farm_name, milk_year = farm_identifier.rsplit("_", 1)
+            farm_id, milk_year = farm_identifier.rsplit("_", 1)
         else:
-            farm_name = farm_identifier
+            farm_id = farm_identifier
             milk_year = None
             st.warning("Farm identifier missing year suffix. Contact administrator.")
 
@@ -405,8 +478,8 @@ def flatten_cft_response(response: list) -> pd.DataFrame:
         disagg = summary["disaggregation_totals"][0]
 
         row = {
-            "farm_identifier": farm_identifier,
-            "farm_name": farm_name,
+            "survey_id": farm_identifier,
+            "farm_id": farm_id,
             "milk_year": pd.to_numeric(milk_year, errors="coerce"),
 
             # Overall summary
@@ -450,7 +523,7 @@ def flatten_cft_response(response: list) -> pd.DataFrame:
 # Integration with your existing code
 # -----------------------------
 if not survey_loader.empty:
-    survey_loader = survey_loader.drop_duplicates()
+    survey_loader = survey_loader.drop_duplicates(subset=["survey_id"])
     st.write("Unique surveys", survey_loader)
     
     # Step 1: Check for duplicates in database
@@ -475,6 +548,21 @@ if not survey_loader.empty:
         
         # Only show submit button when all valid
         if all_valid:
+
+            # ---- derive survey_id (business identifier) ----
+            if "survey_id" not in corrected_df.columns:
+                corrected_df["survey_id"] = (
+                    corrected_df["farm_id"].astype(str).str.strip()
+                    + "_"
+                    + corrected_df["milk_year"].astype(int).astype(str)
+                )
+
+            # Optional sanity check (recommended)
+            if corrected_df["survey_id"].isna().any():
+                st.error("Internal error: survey_id could not be derived for all rows.")
+                st.stop()
+
+            # form to submit api
             with st.form("data_quality_form"):
                 st.write("✅ Data validated successfully!")
                 st.dataframe(corrected_df)
@@ -538,7 +626,16 @@ if not survey_loader.empty:
                         # -------------------------------------------------
                         # Run CFT API
                         # -------------------------------------------------
+                        numeric_cols = corrected_df.select_dtypes(include="number").columns
+                        corrected_df[numeric_cols] = corrected_df[numeric_cols].round(3)
+
+                        # Run
                         api_results = submit_new_surveys(corrected_df)
+                        if not api_results:
+                            st.error("CFT API returned no results.")
+                            st.stop()
+
+
                         st.write("CFT API Results")
 
                         # Flatten
