@@ -30,6 +30,11 @@ def define_validation_rules():
             "required": True,
             "allowed_values": [s["cft_name"] for s in herd_varieties]
         },
+        "bedding.type": {
+            "type": "categorical",
+            "required": False,
+            "allowed_values": ["straw", "sand", "newspaper", "sawdust"]
+        },
         # Add more rules here ....
     }
 

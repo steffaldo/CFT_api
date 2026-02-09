@@ -111,9 +111,6 @@ st.dataframe(
 
 selected_farm_id = get_selected_farm_id(farms)
 
-if selected_farm_id:
-    st.write("Selected UUID:", selected_farm_id)
-
 st.header("Impact Summary for Selected Farm")
 
 if not selected_farm_id:
@@ -121,6 +118,8 @@ if not selected_farm_id:
     st.stop()
 
 summary = load_impact_summary(selected_farm_id)
+
+st.write(summary)
 
 if summary.empty:
     st.warning("No impact summary data found for the selected farm.")

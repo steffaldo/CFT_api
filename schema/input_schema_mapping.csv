@@ -160,8 +160,10 @@ manure_type.calf_dairy,C101,int,
 manure_type.heifer,C102,int,
 manure_type.cow_milk,C103,int,
 manure_type.cow_dry,C104,int,
-energy.diesel,D118,float,0
-energy.electricity,D119,float,0
-energy.renewables,D120,float,0
-energy.petrol,D121,float,0
-energy.gas,D122,float,0
+bedding.type,D112,string,
+bedding.quantity_tonnes,D113,float,0.0
+energy.diesel_litres,D118,float,0
+energy.electricity_kWh,D119,float,0
+energy.renewables_kWh,D120,float,0
+energy.petrol_litres,D121,float,0
+energy.gas_m3,D122,float,0

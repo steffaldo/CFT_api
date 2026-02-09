@@ -23,7 +23,12 @@ UNITS = {
     "fertilizer_application_rate": 12, # t/ha
     "feed_weight": 7, # kg
     "milk_volume": 15, # litres
-    "temperature": 5 # °C
+    "temperature": 5, # °C
+    "bedding_weight": 9, # tonnes
+    "fuel_liquid": 15, # litres
+    "energy_kWh": 36, # kWh
+    "gas_volume": 32, # m3
+    
 }
 
 
@@ -183,29 +188,106 @@ def build_manure_input(row):
     for herd in herd_sections:
         manure_type = row[f"manure_type.{herd}"]
         
-        if manure_type != "PIT STORAGE AND SOLID STORAGE":
+        if manure_type == 1: # Pit and Storage 
             manure_inputs.extend([
                 {"herd_section": herd, "type": 6, "allocation": 50},  # Pit Storage
                 {"herd_section": herd, "type": 1, "allocation": 50},  # Solid Storage
             ])
+        elif manure_type == 2: # Deep bedding
+            manure_inputs.append({"herd_section": herd, "type": 8, "allocation": 100 })
+        elif manure_type == 3: # Pit Storage
+            manure_inputs.append({"herd_section": herd, "type": 6, "allocation": 100 })
+        elif manure_type == 4: # Liquid slurry with cover
+            manure_inputs.append({"herd_section": herd, "type": 32, "allocation": 100 })
+        elif manure_type == 5: # Liquid slurry without natural crust cover
+            manure_inputs.append({"herd_section": herd, "type": 4, "allocation": 100 })
+        elif manure_type == 6: # Anaerobic Digester, Low leakage, High quality industrial technology, open storage
+            manure_inputs.append({"herd_section": herd, "type": 29, "allocation": 100 })
+        elif manure_type == 7: # Custom
+                {"herd_section": herd, "type": 6, "allocation": 25},  # Pit Storage
+                {"herd_section": herd, "type": 1, "allocation": 25},  # Solid Storage
+                {"herd_section": herd, "type": 8, "allocation": 50},  # Solid Storage
         else:
-            manure_inputs.append({
-                "herd_section": herd,
-                "type": manure_type,
-                "allocation": 100
-            })
+            st.warning(f"Invalid manure type for {herd}: {manure_type}. Skipping manure input for this herd section.")
+
     
     return manure_inputs
 
 def build_bedding_input(row):
     """Build bedding section input"""
-    return []  # Currently not implemented
+    return [ # Review
+        {
+            "type": row["bedding.type"], # Straw
+            "quantity": {
+                "value": row["bedding.quantity_tonnes"],
+                "unit": UNITS["bedding_weight"]
+            },
+        }
+    ]   
 
 def build_direct_energy_input(row):
-    return []  # Currently not implemented
+    return [
+        # Diesel
+        {
+            "source": 102,
+            "usage": {
+                "value": row["energy.diesel_litres"],
+                "unit": UNITS["fuel_liquid"]
+            },
+            "category": 1
+        },
+        # Electricity grid
+        {
+            "source": 106,
+            "usage": {
+                "value": row["energy.electricity_kWh"],
+                "unit": UNITS["energy_kWh"]
+            },
+            "category": 1
+        },
+        # Electricity Renewable
+        {
+            "source": 109,
+            "usage": {
+                "value": row["energy.renewables_kWh"],
+                "unit": UNITS["energy_kWh"]
+            },
+            "category": 1
+        },
+        # Petrol
+        {
+            "source": 103,
+            "usage": {
+                "value": row["energy.petrol_litres"],
+                "unit": UNITS["fuel_liquid"]
+            },
+            "category": 1
+        },
+        # Gas
+        {
+            "source": 115,
+            "usage": {
+                "value": row["energy.gas_m3"],
+                "unit": UNITS["gas_volume"]
+            },
+            "category": 1
+        }
+    ]  # Currently not implemented
 
 def build_transport_input(row):
-    return []  # Currently not implemented
+    return [
+    #       {
+    #     "mode": "road LGV diesel (light goods vehicle <3.5t)",
+    #     "weight": {
+    #       "value": 5,
+    #       "unit": "tonne"
+    #     },
+    #     "distance": {
+    #       "value": 3500,
+    #       "unit": "km"
+    #     }
+    #   }
+    ]  # Currently not implemented
 
 
 def build_dairy_input(row):
@@ -242,6 +324,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 def call_cft_api(row):
     payload = process_single_row(row)
+    st.write(payload)
 
     
     try:

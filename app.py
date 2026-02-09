@@ -21,8 +21,8 @@ import re
 
 
 # -- TEMP - identify zscalar for my dev laptop ---
-# os.environ["SSL_CERT_FILE"] = r"C:\certs\zscaler_root_ca.pem"
-# os.environ["REQUESTS_CA_BUNDLE"] = r"C:\certs\zscaler_root_ca.pem"
+os.environ["SSL_CERT_FILE"] = r"C:\certs\zscaler_root_ca.pem"
+os.environ["REQUESTS_CA_BUNDLE"] = r"C:\certs\zscaler_root_ca.pem"
 
 
 st.set_page_config(layout="wide")
@@ -49,7 +49,7 @@ survey_dump = st.file_uploader(
     key=f"uploader{st.session_state.uploader_key}"
 )
 
-# initialise mapping schema
+# initialise mapping schema api
 schema_path = os.path.join("schema", "input_schema_mapping.csv")
 input_schema = pd.read_csv(schema_path)
 
@@ -310,6 +310,20 @@ for survey in survey_dump:
             # ---- Normalize Farm Id / Name ----
             if metric == "farm_id" and cell_has_value(value):
                 value = slugify(value)
+
+            # ---- Translate Bedding Type from Polish to CFT categories ----
+            if metric == "bedding.type" and cell_has_value(value):
+                bedding_type_mapping = {
+                    "sloma": "straw",
+                    "soma": "straw",
+                    "piasek": "sand",
+                    "gazeta": "newspaper",
+                    "trockenmist": "sawdust",
+                    "trociny": "sawdust",
+                    "inne": "newspaper"
+                }
+                value = bedding_type_mapping.get(slugify(value), value) 
+
 
         except Exception as e:
             st.error(f"{survey.name} failed on metric {metric}: {e}")
@@ -637,6 +651,7 @@ if not survey_loader.empty:
 
 
                         st.write("CFT API Results")
+                        st.write(api_results)
 
                         # Flatten
                         df_wide = flatten_cft_response(api_results)
