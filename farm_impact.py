@@ -18,7 +18,7 @@ CHART_COLORS = [
 
 st.set_page_config(layout="wide", page_title="View Impact Report")
 
-st.title("🚜 Farm Impact Dashboard")
+st.title("Farm Impact Dashboard")
 st.caption(
     "Emissions and production performance for your selected farm over time. "
     "Use the sidebar to pick a farm and explore its impact."
@@ -35,13 +35,14 @@ def load_results(farm_id: Optional[str] = None) -> pd.DataFrame:
     """Load impact summary results for a given farm."""
     return pd.DataFrame(get_impact_summary(farm_id))
 
-def get_selected_farm_id(farms: pd.DataFrame) -> Optional[str]:
+def get_selected_farm_id(farms: pd.DataFrame, pre_selected_index: int = 0) -> Optional[str]:
     """Get the selected farm_id from the sidebar."""
     if farms.empty:
         return None
     return st.sidebar.selectbox(
         "Select a Farm",
         farms["farm_id"].unique(),
+        index=pre_selected_index,
         help="Choose a farm to view its detailed impact analysis."
     )
 
@@ -288,7 +289,17 @@ st.sidebar.header("Farm Selection")
 st.sidebar.caption(
     "The selected farm drives all metrics and charts on this dashboard."
 )
-selected_farm_id = get_selected_farm_id(farms)
+
+# Check session state for a pre-selected farm from the comparison page
+pre_selected_index = 0
+if 'selected_farm_id' in st.session_state:
+    farm_list = farms["farm_id"].unique().tolist()
+    if st.session_state['selected_farm_id'] in farm_list:
+        pre_selected_index = farm_list.index(st.session_state['selected_farm_id'])
+    # Clear the session state so the selection is not sticky
+    del st.session_state['selected_farm_id']
+
+selected_farm_id = get_selected_farm_id(farms, pre_selected_index=pre_selected_index)
 
 if not selected_farm_id:
     st.info("Select a farm from the sidebar to view its impact summary.")
