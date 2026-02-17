@@ -196,9 +196,9 @@ def slugify(text: str) -> str:
 
     return text
 
+
 # Loop and ingest each survey
 for survey in survey_dump:
-    # read each notebook into a pandas df, ensuring correct values and mapping when they go in
 
     wb = load_workbook(survey, data_only=True)
     ws = wb.active
@@ -206,109 +206,92 @@ for survey in survey_dump:
     row_data = {}
     skip_survey = False
 
+    # helper
+    def fail(msg):
+        st.error(f"❌ {survey.name} skipped — {msg}")
+        return True
+
+    # =====================================================
+    # FEED CONFIG VALIDATION (RUN ONCE PER FILE)
+    # =====================================================
+
+    # --- DMI vs FWI ---
+    dmi_selected = cell_has_value(ws[feed_conversion_mapping["dmi_select"]].value)
+    fwi_selected = cell_has_value(ws[feed_conversion_mapping["fwi_select"]].value)
+
+    if dmi_selected and fwi_selected:
+        skip_survey = fail("Both DMI and FWI selected")
+    elif not dmi_selected and not fwi_selected:
+        skip_survey = fail("No feed unit selected (DMI/FWI)")
+    else:
+        dmi_conversion = fwi_selected
+
+    # --- Per animal vs herd ---
+    animal_selected = cell_has_value(ws[feed_conversion_mapping["feed_per_animal"]].value)
+    herd_selected = cell_has_value(ws[feed_conversion_mapping["feed_per_herd"]].value)
+
+    if animal_selected and herd_selected:
+        skip_survey = fail("Both per-animal and per-herd feed selected")
+    elif not animal_selected and not herd_selected:
+        skip_survey = fail("Missing animal/herd feed selection")
+    else:
+        herd_feed_indicator = herd_selected
+
+    # --- Feeding period ---
+    day_selected = cell_has_value(ws[feed_conversion_mapping["feed_period_day_single"]].value)
+    custom_day_selected = cell_has_value(ws[feed_conversion_mapping["feed_period_day_custom"]].value)
+
+    if day_selected and custom_day_selected:
+        skip_survey = fail("Both single-day and multi-day feeding selected")
+    elif not day_selected and not custom_day_selected:
+        skip_survey = fail("Missing feeding period selection")
+    elif day_selected:
+        multiday_feed_indicator = 1
+    else:
+        multiday_feed_indicator = ws[feed_conversion_mapping["feed_period_day_custom"]].value
+
+    if skip_survey:
+        continue
+
+
     # ---- Hard Checkpoint: farm_id must exist ----
     farm_id_cell = schema_dict["farm_id"]["cell"]
     raw_farm_id = ws[farm_id_cell].value
     if not cell_has_value(raw_farm_id):
-        st.error(
-            f"❌ {survey.name} was skipped: missing required Farm Name "
-            f"(cell {farm_id_cell}). Update the file and re-upload."
-        )
+        st.error(f"❌ {survey.name} skipped — missing Farm Name ({farm_id_cell})")
         continue
 
     # ---- Hard Checkpoint: milk_year must exist ----
     milk_year_cell = schema_dict["milk_year"]["cell"]
     raw_milk_year = ws[milk_year_cell].value
     if not cell_has_value(raw_milk_year):
-        st.error(
-            f"❌ {survey.name} was skipped: missing required milk_year "
-            f"(cell {milk_year_cell}). Update the file and re-upload."
-        )
+        st.error(f"❌ {survey.name} skipped — missing milk_year ({milk_year_cell})")
         continue
 
-    # Iterate through each metric in the schema and extract values
+
+    # =====================================================
+    # METRIC EXTRACTION LOOP
+    # =====================================================
     for metric, info in schema_dict.items():
         try:
             value = ws[info["cell"]].value
 
-            # apply default if no value provided
             if not cell_has_value(value) and cell_has_value(info["default"]):
                 value = info["default"]
 
-            # cast to correct type
             if info["type"] == "int":
                 value = int(value) if cell_has_value(value) else None
             elif info["type"] == "float":
                 value = round(float(value), 3) if cell_has_value(value) else None
             elif info["type"] == "string":
-                if not cell_has_value(value):
-                    value = None
-                else:
-                    value = str(value).strip()
+                value = str(value).strip() if cell_has_value(value) else None
 
-            # Quickl handle for shorthand herd type
+            # shorthand breed
             if metric.endswith("main_breed_variety") and cell_has_value(value):
                 if value in ["HF", "hf", "Hf"]:
                     value = "Holstein"
 
-            # ---- Special handling for feed metrics ----
-            # 1. Convert feed values to standard DMI head day if applicable
-            dmi_selected = cell_has_value(ws[feed_conversion_mapping["dmi_select"]].value)
-            fwi_selected = cell_has_value(ws[feed_conversion_mapping["fwi_select"]].value)
-
-            if dmi_selected and fwi_selected:
-                st.error(
-                    f"{survey.name} has both DMI and FWI selected as feed input types "
-                    "- please correct to have only one selected and re-upload the survey."
-                )
-                skip_survey = True
-                break
-
-            # if already dmi then don't convert 
-            if dmi_selected:
-                dmi_conversion = False
-            # if fwi then convert into dmi
-            elif fwi_selected:
-                dmi_conversion = True
-            else:
-                st.error(f"{survey.name} has no indication of whether feed data is provided in FWI or DMI")
-                st.stop() 
-
-            # 2. Convert feed values to standard DMI head day if applicable
-            animal_selected = cell_has_value(ws[feed_conversion_mapping["feed_per_animal"]].value)
-            herd_selected = cell_has_value(ws[feed_conversion_mapping["feed_per_herd"]].value)
-
-            if animal_selected and herd_selected:
-                st.error(f"{survey.name} has both per animal and per herd feed data - please correct to have only one selected")
-                continue
-            elif animal_selected:
-                herd_feed_indicator = False
-            elif herd_selected:
-                herd_feed_indicator = True
-            else:
-                st.error(f"{survey.name} has no indication of whether feed data is provided at a single cow or herd level")
-                st.stop() 
-
-            # 3. Identify if feed data is for single day or multiple days (if multiple then convert to per day)
-            day_selected = cell_has_value(ws[feed_conversion_mapping["feed_period_day_single"]].value)
-            custom_day_selected = cell_has_value(ws[feed_conversion_mapping["feed_period_day_custom"]].value)
-
-            if day_selected and custom_day_selected:
-                st.error(f"{survey.name} has both single day and multiple day feed data - please correct to have only one selected")
-                continue
-            elif day_selected:
-                multiday_feed_indicator = 1
-            elif custom_day_selected:
-                if isinstance(ws[feed_conversion_mapping["feed_period_day_custom"]].value, int):
-                    multiday_feed_indicator = ws[feed_conversion_mapping["feed_period_day_custom"]].value
-                else:
-                    st.error("Feeding period for multiple days must be an integer.")
-                    st.stop()
-            else:
-                st.error(f"{survey.name} has no indication of whether feed data is provided for a single day or multiple days")
-                st.stop() 
-
-            # Convert feed values based on indicators
+            # feed conversion (NOW SAFE)
             if metric.startswith("feed."):
                 value = normalize_feed_value(
                     value=value,
@@ -318,16 +301,14 @@ for survey in survey_dump:
                     dmi_conversion=dmi_conversion,
                     herd_feed_indicator=herd_feed_indicator,
                     multiday_feed_indicator=multiday_feed_indicator,
-                    debug=False,  
+                    debug=False,
                 )
- 
 
-
-            # ---- Normalize Farm Id / Name ----
+            # normalize farm id
             if metric == "farm_id" and cell_has_value(value):
                 value = slugify(value)
 
-            # ---- Translate Bedding Type from Polish to CFT categories ----
+            # bedding translation
             if metric == "bedding.type" and cell_has_value(value):
                 bedding_type_mapping = {
                     "sloma": "straw",
@@ -338,10 +319,7 @@ for survey in survey_dump:
                     "trociny": "sawdust",
                     "inne": "newspaper"
                 }
-                value = bedding_type_mapping.get(slugify(value), value) 
-
-            # ----
-
+                value = bedding_type_mapping.get(slugify(value), value)
 
         except Exception as e:
             st.error(f"{survey.name} failed on metric {metric}: {e}")
@@ -350,17 +328,15 @@ for survey in survey_dump:
         row_data[metric] = value
 
 
-    if skip_survey:
-        continue
-
     farm_id = row_data.get("farm_id")
     milk_year = row_data.get("milk_year")
 
-    # farm_id + milk_year are required at this point
     row_data["survey_id"] = f"{str(farm_id).strip()}_{int(milk_year)}"
 
-    # Append the extracted and transformed data for this survey to the loader dataframe
-    survey_loader = pd.concat([survey_loader, pd.DataFrame([row_data])], ignore_index=True)
+    survey_loader = pd.concat(
+        [survey_loader, pd.DataFrame([row_data])],
+        ignore_index=True
+    )
 
 
 
