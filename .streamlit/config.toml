@@ -9,6 +9,15 @@ backgroundColor = "#ffffff"
 secondaryBackgroundColor = "#f1f5f9"
 textColor = "#0f172a"
 font = "sans serif"
+chartCategoricalColors = [
+  "#2a9df4", # primary blue
+  "#14b8a6", # teal accent
+  "#0ea5e9", # light blue
+  "#22c55e", # green
+  "#6366f1", # indigo
+  "#0f766e", # dark teal
+  "#4b5563", # gray
+]
 
 [theme.sidebar]
 backgroundColor = "#334155"

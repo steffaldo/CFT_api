@@ -25,7 +25,7 @@ import re
 # os.environ["REQUESTS_CA_BUNDLE"] = r"C:\certs\zscaler_root_ca.pem"
 
 
-st.set_page_config(layout="wide")
+st.set_page_config(layout="wide", page_icon="🐄", page_title="CFT API Upload")
 
 st.title("CFT Dairy Data Upload")
 
