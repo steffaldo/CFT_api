@@ -306,6 +306,8 @@ for survey in survey_dump:
                     multiday_feed_indicator=multiday_feed_indicator,
                     debug=False,  
                 )
+ 
+
 
             # ---- Normalize Farm Id / Name ----
             if metric == "farm_id" and cell_has_value(value):
@@ -323,6 +325,8 @@ for survey in survey_dump:
                     "inne": "newspaper"
                 }
                 value = bedding_type_mapping.get(slugify(value), value) 
+
+            # ----
 
 
         except Exception as e:

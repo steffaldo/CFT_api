@@ -1,0 +1,8 @@
+[connections.my_connection]
+account = "FC42113-WF22494"
+user = "STEFFAN.THOMAS@OFI.COM"
+password = "eyJraWQiOiIyMTkxNTA3NjcwODc2MzQiLCJhbGciOiJFUzI1NiJ9.eyJwIjoiMzM0Mzk5MDcwOTozMzQ0MDEzMDYxIiwiaXNzIjoiU0Y6MjAwNSIsImV4cCI6MTgwMTA2MjgxN30.BD4_MJWh3dmhQQzoKt4clr5IswTzTzUS7lcg3oTJI68QDaQqitv9GO1HNiy-JseImgO40b9JNJmxQ-DGDTskdA"
+role = "PRD_TT_ANALYST_FR"
+warehouse = "<none selected>"
+database = "ERP_PRD"
+schema = "PUBLIC"

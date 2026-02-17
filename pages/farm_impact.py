@@ -1,7 +1,8 @@
 import streamlit as st
-from data.supabase import get_dairy_inputs, get_impact_summary
+from data.supabase import get_dairy_inputs, get_impact_summary, get_dairy_outputs
 import pandas as pd
 import plotly.express as px
+from typing import Optional
 
 from utils.api_parser import HERD_SECTIONS
 
@@ -24,19 +25,19 @@ def get_selected_farm_id(farms: pd.DataFrame) -> str | None:
     return farms.iloc[rows[0]]["farm_id"]
 
 
-def load_impact_summary(farm_id: str) -> pd.DataFrame:
+def load_results(farm_id: Optional[str] = None) -> pd.DataFrame:
     return pd.DataFrame(get_impact_summary(farm_id))
 
 
 def melt_and_label_summary(summary: pd.DataFrame) -> pd.DataFrame:
     label_map = {
-        "cc_a_energy_tco2_t_fpcm": "Energy",
-        "cc_a_feed_tco2_t_fpcm": "Feed",
-        "cc_a_grazing_tco2_t_fpcm": "Grazing",
-        "cc_a_manure_tco2_t_fpcm": "Manure",
-        "cc_a_enteric_tco2_t_fpcm": "Enteric",
-        "cc_a_fertiliser_tco2_t_fpcm": "Fertiliser",
-        "cc_t_overall_tco2_t_fpcm": "Transport",
+        "energy_total_CO2e_per_fpcm": "Energy",
+        "feed_total_CO2e_per_fpcm": "Feed",
+        "grazing_total_CO2e_per_fpcm": "Grazing",
+        "manure_total_CO2e_per_fpcm": "Manure",
+        "enteric_total_CO2e_per_fpcm": "Enteric",
+        "fertiliser_total_CO2e_per_fpcm": "Fertiliser",
+        "transport_total_CO2e_per_fpcm": "Transport",
     }
 
     value_vars = [c for c in label_map if c in summary.columns]
@@ -93,6 +94,7 @@ def build_emissions_figure(summary_melted: pd.DataFrame, mode: str):
     if tickformat:
         fig.update_yaxes(tickformat=tickformat)
 
+
     return fig
 
 
@@ -117,7 +119,8 @@ if not selected_farm_id:
     st.info("Select a farm to view impact summary.")
     st.stop()
 
-summary = load_impact_summary(selected_farm_id)
+summary = load_results(selected_farm_id)
+st.write(load_results())
 
 st.write(summary)
 

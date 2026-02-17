@@ -14,6 +14,7 @@ certified = false
 region_name = "Global (world)"
 cft_name = "grass_fresh_managed"
 fwi_to_dmi = 0.16
+production_location = "on-farm"
 
 [[feed]]
 cft_id = 8
@@ -22,6 +23,7 @@ certified = false
 region_name = "Global (world)"
 cft_name = "maize_silage"
 fwi_to_dmi = 0.283
+production_location = "on-farm"
 
 [[feed]]
 cft_id = 6
@@ -30,6 +32,7 @@ certified = false
 region_name = "Global (world)"
 cft_name = "grass_silage"
 fwi_to_dmi = 0.37
+production_location = "on-farm"
 
 [[feed]]
 cft_id = 9
@@ -38,6 +41,7 @@ certified = false
 region_name = "Global (world)"
 cft_name = "lucerne_alfalfa_silage"
 fwi_to_dmi = 0.37
+production_location = "on-farm"
 
 [[feed]]
 cft_id = 4
@@ -46,6 +50,7 @@ certified = false
 region_name = "Global (world)"
 cft_name = "grass_hay"
 fwi_to_dmi = 0.845
+production_location = "on-farm"
 
 [[feed]]
 cft_id = 11
@@ -54,6 +59,7 @@ certified = false
 region_name = "Global (world)"
 cft_name = "straw"
 fwi_to_dmi = 0.902
+production_location = "on-farm"
 
 [[feed]]
 cft_id = 13
@@ -62,6 +68,7 @@ certified = false
 region_name = "Poland"
 cft_name = "wheat"
 fwi_to_dmi = 0.868
+production_location = "on-farm"
 
 [[feed]]
 cft_id = 20
@@ -70,6 +77,7 @@ certified = false
 region_name = "European Union + EFTA"
 cft_name = "other_cereals"
 fwi_to_dmi = 0.877
+production_location = "on-farm"
 
 [[feed]]
 cft_id = 16
@@ -78,6 +86,7 @@ certified = false
 region_name = "Poland"
 cft_name = "oats"
 fwi_to_dmi = 0.889
+production_location = "on-farm"
 
 [[feed]]
 cft_id = 18
@@ -86,6 +95,7 @@ certified = false
 region_name = "Poland"
 cft_name = "rye"
 fwi_to_dmi = 0.872
+production_location = "on-farm"
 
 [[feed]]
 cft_id = 14
@@ -94,6 +104,7 @@ certified = false
 region_name = "Poland"
 cft_name = "barley"
 fwi_to_dmi = 0.869
+production_location = "on-farm"
 
 [[feed]]
 cft_id = 15
@@ -102,6 +113,7 @@ certified = false
 region_name = "European Union + EFTA"
 cft_name = "maize_grain"
 fwi_to_dmi = 0.872
+production_location = "on-farm"
 
 [[feed]]
 cft_id = 31
@@ -110,6 +122,7 @@ certified = false
 region_name = "Poland"
 cft_name = "rapeseed_meal"
 fwi_to_dmi = 0.872
+production_location = "off-farm"
 
 [[feed]]
 cft_id = 27
@@ -118,6 +131,7 @@ certified = false
 region_name = "Global (world)"
 cft_name = "compound_15_soy"
 fwi_to_dmi = 0.894
+production_location = "off-farm"
 
 [[feed]]
 cft_id = 29
@@ -126,6 +140,7 @@ certified = false
 region_name = "Global (world)"
 cft_name = "compound_8_soy"
 fwi_to_dmi = 0.896
+production_location = "off-farm"
 
 [[feed]]
 cft_id = 28
@@ -134,6 +149,7 @@ certified = false
 region_name = "Global (world)"
 cft_name = "compound_46_soy"
 fwi_to_dmi = 0.886
+production_location = "off-farm"
 
 [[feed]]
 cft_id = 30
@@ -142,6 +158,7 @@ certified = false
 region_name = "Global (world)"
 cft_name = "soybean_meal"
 fwi_to_dmi = 0.874
+production_location = "off-farm"
 
 [[feed]]
 cft_id = 36
@@ -150,6 +167,7 @@ certified = false
 region_name = "Poland"
 cft_name = "soybean"
 fwi_to_dmi = 0.885
+production_location = "off-farm"
 
 [[feed]]
 cft_id = 42
@@ -158,6 +176,7 @@ certified = false
 region_name = "Poland"
 cft_name = "fodder_beet"
 fwi_to_dmi = 0.22
+production_location = "off-farm"
 
 [[feed]]
 cft_id = 48
@@ -166,6 +185,7 @@ certified = false
 region_name = "Poland"
 cft_name = "sugar_beet_pulp"
 fwi_to_dmi = 0.907
+production_location = "off-farm"
 
 [[feed]]
 cft_id = 78
@@ -174,6 +194,7 @@ certified = false
 region_name = "Poland"
 cft_name = "molasses"
 fwi_to_dmi = 0.723
+production_location = "off-farm"
 
 [[feed]]
 cft_id = 23
@@ -182,6 +203,7 @@ certified = false
 region_name = "European Union + EFTA"
 cft_name = "dried_distillers_grains"
 fwi_to_dmi = 0.901
+production_location = "off-farm"
 
 [[feed]]
 cft_id = 24
@@ -190,6 +212,7 @@ certified = false
 region_name = "European Union + EFTA"
 cft_name = "brewers_grain"
 fwi_to_dmi = 0.903
+production_location = "off-farm"
 
 [[feed]]
 cft_id = 35
@@ -198,6 +221,7 @@ certified = false
 region_name = "Global (world)"
 cft_name = "other_oil_meal"
 fwi_to_dmi = 0.891
+production_location = "off-farm"
 
 [[feed]]
 cft_id = 80
@@ -206,6 +230,7 @@ certified = false
 region_name = "European Union + EFTA"
 cft_name = "mineral_mix"
 fwi_to_dmi = 0.95
+production_location = "off-farm"
 
 [[feed]]
 cft_id = 75
@@ -214,3 +239,4 @@ certified = false
 region_name = "European Union + EFTA"
 cft_name = "bypass_fat"
 fwi_to_dmi = 0.994
+production_location = "off-farm"

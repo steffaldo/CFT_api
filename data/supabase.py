@@ -114,10 +114,14 @@ def upsert_dairy_inputs(rows: List[Dict]):
 # ------------------------------------------------------------------
 
 def get_dairy_outputs(
+    farm_id: Optional[str] = None,
     survey_id: Optional[str] = None,
     limit: Optional[int] = None,
 ):
     query = supabase.table(TABLE_OUTPUTS).select("*")
+
+    if farm_id is not None:
+        query = query.eq("farm_id", farm_id)
 
     if survey_id is not None:
         query = query.eq("survey_id", survey_id)

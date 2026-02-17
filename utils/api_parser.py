@@ -275,19 +275,48 @@ def build_direct_energy_input(row):
     ]  # Currently not implemented
 
 def build_transport_input(row):
+    # Keep only off-farm feed & fertilizer
+    off_farm_feed = [feed for feed in FEED_ITEMS if feed.get('production_location') != "on-farm"]
+    off_farm_fert = [fert for fert in FERTILIZERS if fert.get('production_location') != "on-farm"]
+
+    # Calculate total DMI for off-farm feed across all herd sections
+    # The 'or 0' handles the NoneType error by defaulting to zero
+    total_off_farm_feed_dmi = sum([
+        (row.get(f"feed.{feed['cft_name']}.{hs['cft_name']}.kgDMI_head_day") or 0) * 
+        (row.get(f"{hs['cft_name']}.herd_count") or 0) * 365 
+        for feed in off_farm_feed 
+        for hs in HERD_SECTIONS
+    ])
+
+    #test env
+    for feed in off_farm_feed:
+        st.write(f"Feed: {feed['cft_name']}")
+        for hs in HERD_SECTIONS:
+            st.write("Column: ", f"feed.{feed['cft_name']}.{hs['cft_name']}.kgDMI_head_day")
+            value = row.get(f"feed.{feed['cft_name']}.{hs['cft_name']}.kgDMI_head_day")
+            st.write(f"value for {hs['cft_name']}: {value}")
+
+            
+
+
+    total_off_farm_fertilizer = sum([row.get(f"fertilizers.{fert['key']}.t_per_ha", 0) * row.get("general.grazing_area_ha", 0)   for fert in off_farm_fert])
+
+    # feed kg to tonnes 
+    total_off_farm_feed_dmi = total_off_farm_feed_dmi / 1000
+
     return [
-    #       {
-    #     "mode": "road LGV diesel (light goods vehicle <3.5t)",
-    #     "weight": {
-    #       "value": 5,
-    #       "unit": "tonne"
-    #     },
-    #     "distance": {
-    #       "value": 3500,
-    #       "unit": "km"
-    #     }
-    #   }
-    ]  # Currently not implemented
+          {
+        "mode": 119, # "road HGV (average heavy goods vehicle)"
+        "weight": {
+          "value": total_off_farm_feed_dmi + total_off_farm_fertilizer,
+          "unit": "tonne"
+        },
+        "distance": {
+          "value": 100,
+          "unit": "km"
+        }
+      }
+    ]  
 
 
 def build_dairy_input(row):
@@ -322,10 +351,11 @@ HEADERS = {
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-def call_cft_api(row):
+def call_cft_api(row, debug=False):
     payload = process_single_row(row)
-    st.write(payload)
-
+    
+    if debug:
+        st.write(payload)
     
     try:
         response = requests.post(
@@ -348,7 +378,7 @@ def call_cft_api(row):
 def submit_new_surveys(df):
     results = []
     for _, row in df.iterrows():
-        api_result = call_cft_api(row)
+        api_result = call_cft_api(row, debug=True)
         results.append(api_result)
     return results
 
