@@ -120,9 +120,6 @@ if not selected_farm_id:
     st.stop()
 
 summary = load_results(selected_farm_id)
-st.write(load_results())
-
-st.write(summary)
 
 if summary.empty:
     st.warning("No impact summary data found for the selected farm.")
@@ -145,16 +142,6 @@ selected_farm_inputs = farms[farms["farm_id"] == selected_farm_id]
 selected_farm_inputs['total_cows'] = selected_farm_inputs[[f"{herd['cft_name']}.herd_count" for herd in HERD_SECTIONS]].sum(axis=1)
 
 
-st.dataframe(
-    selected_farm_inputs[[
-        "milk_year",
-        "main_breed_variety",
-        "total_milk_production_litres",
-        "total_cows",
-    ]],
-    key="selected_farm_inputs_table",
-    hide_index=True,
-)
 
 # cow breakdown
 st.subheader("Cow Breakdown by Herd Section")

@@ -21,8 +21,8 @@ import re
 
 
 # -- TEMP - identify zscalar for my dev laptop ---
-os.environ["SSL_CERT_FILE"] = r"C:\certs\zscaler_root_ca.pem"
-os.environ["REQUESTS_CA_BUNDLE"] = r"C:\certs\zscaler_root_ca.pem"
+# os.environ["SSL_CERT_FILE"] = r"C:\certs\zscaler_root_ca.pem"
+# os.environ["REQUESTS_CA_BUNDLE"] = r"C:\certs\zscaler_root_ca.pem"
 
 
 st.set_page_config(layout="wide")
@@ -173,7 +173,7 @@ def normalize_feed_value(
                 value
             )
 
-    return value
+    return round(value, 3) if value is not None else None
 
 # text slugify function for farm names
 def slugify(text: str) -> str:
@@ -234,12 +234,17 @@ for survey in survey_dump:
             if info["type"] == "int":
                 value = int(value) if cell_has_value(value) else None
             elif info["type"] == "float":
-                value = float(value) if cell_has_value(value) else None
+                value = round(float(value), 3) if cell_has_value(value) else None
             elif info["type"] == "string":
                 if not cell_has_value(value):
                     value = None
                 else:
                     value = str(value).strip()
+
+            # Quickl handle for shorthand herd type
+            if metric.endswith("main_breed_variety") and cell_has_value(value):
+                if value in ["HF", "hf", "Hf"]:
+                    value = "Holstein"
 
             # ---- Special handling for feed metrics ----
             # 1. Convert feed values to standard DMI head day if applicable
@@ -652,10 +657,6 @@ if not survey_loader.empty:
                         if not api_results:
                             st.error("CFT API returned no results.")
                             st.stop()
-
-
-                        st.write("CFT API Results")
-                        st.write(api_results)
 
                         # Flatten
                         df_wide = flatten_cft_response(api_results)

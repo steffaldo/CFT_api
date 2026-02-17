@@ -280,32 +280,22 @@ def build_transport_input(row):
     off_farm_fert = [fert for fert in FERTILIZERS if fert.get('production_location') != "on-farm"]
 
     # Calculate total DMI for off-farm feed across all herd sections
-    # The 'or 0' handles the NoneType error by defaulting to zero
     total_off_farm_feed_dmi = sum([
-        (row.get(f"feed.{feed['cft_name']}.{hs['cft_name']}.kgDMI_head_day") or 0) * 
-        (row.get(f"{hs['cft_name']}.herd_count") or 0) * 365 
-        for feed in off_farm_feed 
+        (row.get(f"feed.{feed['cft_name']}.{hs['cft_name']}.kgDMI_head_day") or 0) *
+        (
+            (row.get(f"{hs['cft_name']}.herd_count") or 0) +
+            (row.get(f"{hs['cft_name']}.purchased_count") or 0) +
+            (row.get(f"{hs['cft_name']}.sold_count") or 0)
+        ) * 365
+        for feed in off_farm_feed
         for hs in HERD_SECTIONS
-    ])
+    ]) / 1000  # Convert kg to tonnes           
 
-    #test env
-    for feed in off_farm_feed:
-        st.write(f"Feed: {feed['cft_name']}")
-        for hs in HERD_SECTIONS:
-            st.write("Column: ", f"feed.{feed['cft_name']}.{hs['cft_name']}.kgDMI_head_day")
-            value = row.get(f"feed.{feed['cft_name']}.{hs['cft_name']}.kgDMI_head_day")
-            st.write(f"value for {hs['cft_name']}: {value}")
-
-            
-
-
+    # Calculate total tonnes for off-farm fertilizers across all herd sections
     total_off_farm_fertilizer = sum([row.get(f"fertilizers.{fert['key']}.t_per_ha", 0) * row.get("general.grazing_area_ha", 0)   for fert in off_farm_fert])
 
-    # feed kg to tonnes 
-    total_off_farm_feed_dmi = total_off_farm_feed_dmi / 1000
-
     return [
-          {
+        {
         "mode": 119, # "road HGV (average heavy goods vehicle)"
         "weight": {
           "value": total_off_farm_feed_dmi + total_off_farm_fertilizer,
@@ -378,7 +368,7 @@ def call_cft_api(row, debug=False):
 def submit_new_surveys(df):
     results = []
     for _, row in df.iterrows():
-        api_result = call_cft_api(row, debug=True)
+        api_result = call_cft_api(row, debug=False)
         results.append(api_result)
     return results
 
