@@ -291,6 +291,14 @@ for survey in survey_dump:
                 if value in ["HF", "hf", "Hf"]:
                     value = "Holstein"
 
+            # grazing quality translation
+            if metric == "grazing.quality" and cell_has_value(value):
+                grazing_quality_mapping = {
+                    "wysoka": "HIGH",
+                    "niska": "LOW",
+                }
+                value = grazing_quality_mapping.get(slugify(value), value)
+
             # feed conversion (NOW SAFE)
             if metric.startswith("feed."):
                 value = normalize_feed_value(

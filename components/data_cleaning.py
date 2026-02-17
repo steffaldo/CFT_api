@@ -10,7 +10,7 @@ def define_validation_rules():
         "farm_id": {
             "type": "string",
             "required": True,
-            "min_length": 4,
+            "min_length": 3,
             "max_length": 100
         },
         # "farm_size": {
