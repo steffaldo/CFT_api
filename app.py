@@ -27,7 +27,19 @@ import re
 
 st.set_page_config(layout="wide")
 
-st.title("CFT Dairy Data Upload")   
+st.title("CFT Dairy Data Upload")
+
+st.markdown(
+    "Upload CFT dairy survey workbooks, check for data quality issues, "
+    "and send them to the CFT model for emissions results."
+)
+
+st.divider()
+
+st.info(
+    "**Workflow:** 1) Upload survey workbook(s) • 2) Fix any data issues "
+    "• 3) Upload to database & run CFT API."
+)
 
 stn.notify()
 
@@ -37,16 +49,20 @@ df = pd.DataFrame(data)
 herd_sections = load_toml("herd.toml")["herd_section"]
 herd_varieties = load_toml("herd.toml")["herd_variety"]
 
-st.subheader("Current Table")
-st.dataframe(df)
 
 # ---- Drop files
 if "uploader_key" not in st.session_state:
     st.session_state.uploader_key = 0
 
 survey_dump = st.file_uploader(
-    "Upload surveys", accept_multiple_files=True, type="xlsx",
-    key=f"uploader{st.session_state.uploader_key}"
+    "Upload new survey workbook(s)",
+    accept_multiple_files=True,
+    type="xlsx",
+    help=(
+        "Upload one or more Excel (.xlsx) CFT survey templates. "
+        "Each file should contain data for a single farm and milk year."
+    ),
+    key=f"uploader{st.session_state.uploader_key}",
 )
 
 # initialise mapping schema api
@@ -368,6 +384,10 @@ def display_error_correction_ui(error_report, df):
         return df, True
 
     st.warning(f"⚠️ Found {len(error_report)} rows with data quality issues")
+    st.caption(
+        "Work through each issue shown below, updating values where needed. "
+        "Use the buttons at the bottom to move between records or reset all changes."
+    )
 
     # Reset state if the underlying df changes (simple + reliable)
     df_sig = tuple(df["survey_id"].astype(str).tolist())
@@ -547,16 +567,38 @@ def flatten_cft_response(response: list) -> pd.DataFrame:
 # -----------------------------
 if not survey_loader.empty:
     survey_loader = survey_loader.drop_duplicates(subset=["survey_id"])
-    st.write("Unique surveys", survey_loader)
-    
     # Step 1: Check for duplicates in database
-    duplicate_rows, cleaned_df = check_duplicates_in_database(survey_loader, df, id_column="farm_id")
-    resolved_df, duplicates_resolved = display_duplicate_resolution_ui(duplicate_rows, cleaned_df, df)
+    duplicate_rows, cleaned_df = check_duplicates_in_database(
+        survey_loader, df, id_column="farm_id"
+    )
+
+    # If every uploaded survey was an exact duplicate, show info only and do not proceed
+    if cleaned_df.empty and not duplicate_rows:
+        st.info(
+            "All uploaded survey workbook(s) are exact duplicates of existing records. "
+            "No new data to validate or upload."
+        )
+        st.stop()
+
+    # Show only the truly new/changed surveys
+    st.write("Unique surveys", cleaned_df)
+
+    st.caption(
+        "If a farm already exists, choose whether to overwrite its data with this upload "
+        "or keep the existing record."
+    )
+    resolved_df, duplicates_resolved = display_duplicate_resolution_ui(
+        duplicate_rows, cleaned_df, df
+    )
     
     # Step 2: Only proceed to validation if duplicates are resolved
     if duplicates_resolved:
         st.divider()
         st.subheader("📋 Data Quality Validation")
+        st.caption(
+            "Review and fix any highlighted cells below. Red warnings indicate values "
+            "that must be corrected before you can submit."
+        )
         
         # Run validation
         validation_rules = define_validation_rules()
@@ -588,6 +630,10 @@ if not survey_loader.empty:
             # form to submit api
             with st.form("data_quality_form"):
                 st.write("✅ Data validated successfully!")
+                st.caption(
+                    "Submitting will upload these records to the central database and run the CFT model. "
+                    "This may take up to a minute."
+                )
                 st.dataframe(corrected_df)
                 
                 if st.form_submit_button("Upload to Database and Run CFT API"):

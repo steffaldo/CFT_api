@@ -190,8 +190,10 @@ def check_duplicates_in_database(df, existing_df, id_column="farm_id"):
     # Drop exact matches silently
     cleaned_df = df.drop(rows_to_drop)
     
-    if rows_to_drop:
-        st.info(f"ℹ️ Automatically skipped {len(rows_to_drop)} exact duplicate(s) already in database")
+    # Only show message if there are some exact duplicates but also some unique records
+    # (If all are duplicates, app.py will handle the message)
+    if rows_to_drop and not cleaned_df.empty:
+        st.info(f"Automatically skipped {len(rows_to_drop)} exact duplicate(s) already in database")
     
     return duplicate_rows, cleaned_df
 
