@@ -294,11 +294,19 @@ def build_transport_input(row):
     # Calculate total tonnes for off-farm fertilizers across all herd sections
     total_off_farm_fertilizer = sum([row.get(f"fertilizers.{fert['key']}.t_per_ha", 0) * row.get("general.grazing_area_ha", 0)   for fert in off_farm_fert])
 
+    total_weight = total_off_farm_feed_dmi + total_off_farm_fertilizer
+
+        # CFT rules
+    if total_weight <= 0:
+        return []
+
+    total_weight = min(total_weight, 9999)
+
     return [
         {
         "mode": 119, # "road HGV (average heavy goods vehicle)"
         "weight": {
-          "value": total_off_farm_feed_dmi + total_off_farm_fertilizer,
+          "value": total_weight,
           "unit": "tonne"
         },
         "distance": {
@@ -368,7 +376,7 @@ def call_cft_api(row, debug=False):
 def submit_new_surveys(df):
     results = []
     for _, row in df.iterrows():
-        api_result = call_cft_api(row, debug=False)
+        api_result = call_cft_api(row, debug=True)
         results.append(api_result)
     return results
 
