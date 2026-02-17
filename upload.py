@@ -292,7 +292,7 @@ for survey in survey_dump:
                     value = "Holstein"
 
             # grazing quality translation
-            if metric == "grazing.quality" and cell_has_value(value):
+            if metric.endswith("grazing_quality") and cell_has_value(value):
                 grazing_quality_mapping = {
                     "wysoka": "HIGH",
                     "niska": "LOW",

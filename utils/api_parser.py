@@ -306,7 +306,7 @@ def build_transport_input(row):
         {
         "mode": 119, # "road HGV (average heavy goods vehicle)"
         "weight": {
-          "value": total_weight,
+          "value": round(total_weight, 3),
           "unit": "tonne"
         },
         "distance": {
@@ -376,7 +376,7 @@ def call_cft_api(row, debug=False):
 def submit_new_surveys(df):
     results = []
     for _, row in df.iterrows():
-        api_result = call_cft_api(row, debug=True)
+        api_result = call_cft_api(row, debug=False)
         results.append(api_result)
     return results
 
