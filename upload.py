@@ -204,6 +204,7 @@ for survey in survey_dump:
     ws = wb.active
 
     row_data = {}
+    skip_survey = False
 
     # ---- Hard Checkpoint: farm_id must exist ----
     farm_id_cell = schema_dict["farm_id"]["cell"]
@@ -256,8 +257,12 @@ for survey in survey_dump:
             fwi_selected = cell_has_value(ws[feed_conversion_mapping["fwi_select"]].value)
 
             if dmi_selected and fwi_selected:
-                st.error(f"{survey.name} has both DMI and FWI selected as feed input types - please correct to have only one selected")
-                st.stop()
+                st.error(
+                    f"{survey.name} has both DMI and FWI selected as feed input types "
+                    "- please correct to have only one selected and re-upload the survey."
+                )
+                skip_survey = True
+                break
 
             # if already dmi then don't convert 
             if dmi_selected:
@@ -275,7 +280,7 @@ for survey in survey_dump:
 
             if animal_selected and herd_selected:
                 st.error(f"{survey.name} has both per animal and per herd feed data - please correct to have only one selected")
-                st.stop()
+                continue
             elif animal_selected:
                 herd_feed_indicator = False
             elif herd_selected:
@@ -290,7 +295,7 @@ for survey in survey_dump:
 
             if day_selected and custom_day_selected:
                 st.error(f"{survey.name} has both single day and multiple day feed data - please correct to have only one selected")
-                st.stop()
+                continue
             elif day_selected:
                 multiday_feed_indicator = 1
             elif custom_day_selected:
@@ -344,6 +349,9 @@ for survey in survey_dump:
 
         row_data[metric] = value
 
+
+    if skip_survey:
+        continue
 
     farm_id = row_data.get("farm_id")
     milk_year = row_data.get("milk_year")
