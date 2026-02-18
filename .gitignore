@@ -2,3 +2,6 @@
 
 # Ignore Python cache
 __pycache__/
+
+# secrets
+.streamlit/secrets.toml
