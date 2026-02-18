@@ -186,7 +186,8 @@ def build_manure_input(row):
     herd_sections = ["calf_dairy", "heifer", "cow_milk", "cow_dry"]
     
     for herd in herd_sections:
-        manure_type = row[f"manure_type.{herd}"]
+        manure_type = int(row[f"manure_type.{herd}"])
+
         
         if manure_type == 1: # Pit and Storage 
             manure_inputs.extend([
