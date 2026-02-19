@@ -18,7 +18,9 @@ import re
 st.title("CFT Dairy Data Upload")
 
 # Add debug tick
-if st.sidebar.checkbox("Debug mode (show extra info)"):
+
+
+if st.sidebar.checkbox("Debug mode (show extra info)", value=st.session_state.debug):
     st.session_state.debug = True
 
 st.markdown(
