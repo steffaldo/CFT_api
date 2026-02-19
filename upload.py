@@ -17,6 +17,10 @@ import re
 
 st.title("CFT Dairy Data Upload")
 
+# Add debug tick
+if st.sidebar.checkbox("Debug mode (show extra info)"):
+    st.session_state.debug = True
+
 st.markdown(
     "Upload CFT dairy survey workbooks, check for data quality issues, "
     "and send them to the CFT model for emissions results."

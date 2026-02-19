@@ -352,7 +352,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 def call_cft_api(row, debug=False):
     payload = process_single_row(row)
     
-    if debug:
+    if st.session_state.get("debug", False) or debug:
         st.write(payload)
     
     try:
