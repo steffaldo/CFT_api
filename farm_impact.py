@@ -4,7 +4,7 @@ import pandas as pd
 import plotly.express as px
 from typing import Optional
 from utils.api_parser import HERD_SECTIONS
-from utils.api_parser import call_cft_api
+from utils.api_parser import process_single_row
 
 # debug
 if st.sidebar.checkbox("Debug mode (show extra info)", value=st.session_state.debug):
@@ -409,7 +409,8 @@ with tab3:
     # run api parser using input data from supabase
     if st.session_state.debug:
         st.subheader("View Payload Data")
-        st.json(call_cft_api(pd.DataFrame(get_dairy_inputs(f"{selected_farm_id}_2025"))))
+        # get_dairy_inputs(f"{selected_farm_id}_2025")
+        st.json(process_single_row(farm_inputs.iloc[0]))
 
 
 
