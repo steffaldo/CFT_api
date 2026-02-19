@@ -39,7 +39,7 @@ def build_farm_input(row):
     return {
         "country": "Poland", 
         "territory": None,
-        "climate": "Cool Temperate Moist",
+        "climate": "Cool Temperate Dry",
         "average_temperature": {"value": 10, "unit": 5},
         "latitude": 52.679,
         "longitude": 20.030,

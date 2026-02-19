@@ -183,7 +183,7 @@ def normalize_feed_value(
                 value
             )
 
-    return round(value, 3) if value is not None else None
+    return round(value, 4) if value is not None else None
 
 # text slugify function for farm names
 def slugify(text: str) -> str:
@@ -288,7 +288,7 @@ for survey in survey_dump:
             if info["type"] == "int":
                 value = int(value) if cell_has_value(value) else None
             elif info["type"] == "float":
-                value = round(float(value), 3) if cell_has_value(value) else None
+                value = round(float(value), 4) if cell_has_value(value) else None
             elif info["type"] == "string":
                 value = str(value).strip() if cell_has_value(value) else None
 
@@ -682,7 +682,7 @@ if not survey_loader.empty:
                         # Run CFT API
                         # -------------------------------------------------
                         numeric_cols = corrected_df.select_dtypes(include="number").columns
-                        corrected_df[numeric_cols] = corrected_df[numeric_cols].round(3)
+                        corrected_df[numeric_cols] = corrected_df[numeric_cols].round(4)
 
                         # Run
                         api_results = submit_new_surveys(corrected_df)
