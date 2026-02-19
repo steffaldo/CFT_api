@@ -208,6 +208,11 @@ def build_manure_input(row):
                 {"herd_section": herd, "type": 6, "allocation": 25},  # Pit Storage
                 {"herd_section": herd, "type": 1, "allocation": 25},  # Solid Storage
                 {"herd_section": herd, "type": 8, "allocation": 50},  # Solid Storage
+        elif manure_type == 8: # No manure management (e.g. pasture only)
+            manure_inputs.extend([
+                {"herd_section": herd, "type": 6, "allocation": 50}, 
+                {"herd_section": herd, "type": 8, "allocation": 50}, 
+            ])
         else:
             st.warning(f"Invalid manure type for {herd}: {manure_type}. Skipping manure input for this herd section.")
 
