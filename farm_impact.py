@@ -409,7 +409,7 @@ with tab3:
     # run api parser using input data from supabase
     if st.session_state.debug:
         st.subheader("View Payload Data")
-        st.json(call_cft_api(pd.DataFrame(get_dairy_inputs(selected_farm_id))))
+        st.json(call_cft_api(pd.DataFrame(get_dairy_inputs(f"{selected_farm_id}_2025"))))
 
 
 
