@@ -4,6 +4,7 @@ import pandas as pd
 import plotly.express as px
 from typing import Optional
 from utils.api_parser import HERD_SECTIONS, build_dairy_input
+import json
 
 # debug
 if st.sidebar.checkbox("Debug mode (show extra info)", value=st.session_state.debug):
@@ -405,12 +406,27 @@ with tab3:
     )
     st.dataframe(farm_inputs.T)
 
-    # run api parser using input data from supabase
-    if st.session_state.debug:
-        st.subheader("View Payload Data")
-        # get_dairy_inputs(f"{selected_farm_id}_2025")
-        st.json(build_dairy_input(farm_inputs.iloc[0]))
-
-
+    # --- NEW PAYLOAD VIEWER ---
+    st.divider()
+    with st.expander("🔍 Inspect API Payload (JSON)"):
+        st.info("This is the generated payload that would be sent to the CFT API based on the data above.")
+        
+        try:
+            # We take the first row of the selected farm's input data
+            # and pass it through the parser function
+            payload = build_dairy_input(farm_inputs.iloc[0])
+            
+            # Display it in a pretty JSON format
+            st.json(payload)
+            
+            # Optional: Add a download button for the JSON file
+            st.download_button(
+                label="Download Payload JSON",
+                data=json.dumps(payload, indent=4),
+                file_name=f"payload_{selected_farm_id}.json",
+                mime="application/json"
+            )
+        except Exception as e:
+            st.error(f"Error generating payload: {e}")
 
 
