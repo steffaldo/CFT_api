@@ -4,6 +4,11 @@ import pandas as pd
 import plotly.express as px
 from typing import Optional
 from utils.api_parser import HERD_SECTIONS
+from utils.api_parser import call_cft_api
+
+# debug
+if st.sidebar.checkbox("Debug mode (show extra info)", value=st.session_state.debug):
+    st.session_state.debug = True
 
 # Chart colors matching .streamlit/config.toml chartCategoricalColors
 CHART_COLORS = [
@@ -400,3 +405,12 @@ with tab3:
         "This table may be wide and is best used for spot checks."
     )
     st.dataframe(farm_inputs.T)
+
+    # run api parser using input data from supabase
+    if st.session_state.debug:
+        st.subheader("View Payload Data")
+        st.json(call_cft_api(farm_inputs.iloc[0]))
+
+
+
+

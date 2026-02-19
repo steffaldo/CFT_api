@@ -1,5 +1,7 @@
 import streamlit as st
 
+if "debug" not in st.session_state:
+    st.session_state.debug = False
 
 upload_page = st.Page("upload.py", title="CFT API Upload", icon=":material/arrow_upload_ready:")
 impact_page = st.Page("farm_impact.py", title="Farm Environmental Impact", icon=":material/analytics:")
