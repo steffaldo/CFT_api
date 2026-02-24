@@ -1,4 +1,5 @@
 import streamlit as st
+import os
 
 if "debug" not in st.session_state:
     st.session_state.debug = False
@@ -9,6 +10,7 @@ comparison_page = st.Page("farm_comparison.py", title="Farm-to-Farm Comparison",
 
 pg = st.navigation([upload_page, comparison_page, impact_page])
 st.set_page_config(page_title="Pol Survey CFT API", page_icon="🐄", layout="wide")
+st.logo(os.path.join("assets", "c4c_logo.png"), size="large")
 pg.run()
 
 
