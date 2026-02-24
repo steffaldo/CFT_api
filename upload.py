@@ -660,31 +660,11 @@ if not survey_loader.empty:
 
                     try:
                         # -------------------------------------------------
-                        # Insert new rows
-                        # -------------------------------------------------
-                        if new_rows:
-                            upsert_dairy_inputs(new_rows)
-
-                        progress_bar.progress(0.5)
-
-                        # -------------------------------------------------
-                        # Overwrite existing rows (hard replace semantics)
-                        # -------------------------------------------------
-                        if overwrite_rows:
-                            # Easiest: upsert still works because farm_id is unique
-                            upsert_dairy_inputs(overwrite_rows)
-
-                        progress_bar.progress(1.0)
-
-                        stn.success(f"🎉 All {len(records)} record(s) uploaded successfully!")
-
-                        # -------------------------------------------------
-                        # Run CFT API
+                        # Run CFT API first
                         # -------------------------------------------------
                         numeric_cols = corrected_df.select_dtypes(include="number").columns
                         corrected_df[numeric_cols] = corrected_df[numeric_cols].round(6)
 
-                        # Run
                         api_results = submit_new_surveys(corrected_df)
                         if not api_results:
                             st.error("CFT API returned no results.")
@@ -695,6 +675,21 @@ if not survey_loader.empty:
                         st.write(df_wide)
 
                         # -------------------------------------------------
+                        # API succeeded — now upsert inputs
+                        # -------------------------------------------------
+                        if new_rows:
+                            upsert_dairy_inputs(new_rows)
+
+                        progress_bar.progress(0.5)
+
+                        if overwrite_rows:
+                            upsert_dairy_inputs(overwrite_rows)
+
+                        progress_bar.progress(1.0)
+
+                        stn.success(f"🎉 All {len(records)} record(s) uploaded successfully!")
+
+                        # -------------------------------------------------
                         # Write outputs to Supabase
                         # -------------------------------------------------
                         upsert_outputs_from_df(df_wide)
@@ -702,7 +697,6 @@ if not survey_loader.empty:
                     except Exception as e:
                         st.error("❌ Failed to upload records to Supabase")
                         st.exception(e)
-
 
 
 
