@@ -659,40 +659,40 @@ if not survey_loader.empty:
                             new_rows.append(r)
 
                     try:
-                        # -------------------------------------------------
-                        # Run CFT API first
-                        # -------------------------------------------------
                         numeric_cols = corrected_df.select_dtypes(include="number").columns
                         corrected_df[numeric_cols] = corrected_df[numeric_cols].round(6)
 
-                        api_results = submit_new_surveys(corrected_df)
-                        if not api_results:
-                            st.error("CFT API returned no results.")
-                            st.stop()
+                        with st.status("Submitting to CFT API...", expanded=True) as status:
+                            # -------------------------------------------------
+                            # Run CFT API first
+                            # -------------------------------------------------
+                            api_results = submit_new_surveys(corrected_df)
+                            if not api_results:
+                                st.error("CFT API returned no results.")
+                                st.stop()
 
-                        # Flatten
-                        df_wide = flatten_cft_response(api_results)
+                            df_wide = flatten_cft_response(api_results)
+
+                            # -------------------------------------------------
+                            # API succeeded — now upsert inputs
+                            # -------------------------------------------------
+                            status.update(label="Saving inputs to database...")
+
+                            if new_rows:
+                                upsert_dairy_inputs(new_rows)
+
+                            if overwrite_rows:
+                                upsert_dairy_inputs(overwrite_rows)
+
+                            # -------------------------------------------------
+                            # Write outputs to Supabase
+                            # -------------------------------------------------
+                            status.update(label="Saving outputs to database...")
+                            upsert_outputs_from_df(df_wide)
+
+                            status.update(label=f"🎉 All {len(records)} record(s) uploaded successfully!", state="complete", expanded=False)
+
                         st.write(df_wide)
-
-                        # -------------------------------------------------
-                        # API succeeded — now upsert inputs
-                        # -------------------------------------------------
-                        if new_rows:
-                            upsert_dairy_inputs(new_rows)
-
-                        progress_bar.progress(0.5)
-
-                        if overwrite_rows:
-                            upsert_dairy_inputs(overwrite_rows)
-
-                        progress_bar.progress(1.0)
-
-                        stn.success(f"🎉 All {len(records)} record(s) uploaded successfully!")
-
-                        # -------------------------------------------------
-                        # Write outputs to Supabase
-                        # -------------------------------------------------
-                        upsert_outputs_from_df(df_wide)
 
                     except Exception as e:
                         st.error("❌ Failed to upload records to Supabase")
