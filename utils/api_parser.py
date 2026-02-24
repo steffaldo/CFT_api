@@ -8,7 +8,7 @@ import json
 
 FEED_ITEMS = load_toml("feed.toml")["feed"]
 HERD_SECTIONS = load_toml("herd.toml")["herd_section"]
-FERTILIZERS = load_toml("fertilizer.toml")["fertilzier"]
+FERTILIZERS = load_toml("fertilizer.toml")["fertilizer"]
 HERD_VARIETIES = load_toml("herd.toml")["herd_variety"]
 
 ID_MAPPINGS = {
@@ -191,27 +191,27 @@ def build_manure_input(row):
         
         if manure_type == 1: # Pit and Storage 
             manure_inputs.extend([
-                {"herd_section": herd, "type": 6, "allocation": 50},  # Pit Storage
-                {"herd_section": herd, "type": 1, "allocation": 50},  # Solid Storage
+                {"herd_section": herd, "type": "Pit storage below animal confinements (6 month)", "allocation": 50},  # Pit Storage
+                {"herd_section": herd, "type": "Solid storage", "allocation": 50},  # Solid Storage
             ])
         elif manure_type == 2: # Deep bedding
-            manure_inputs.append({"herd_section": herd, "type": 8, "allocation": 100 })
+            manure_inputs.append({"herd_section": herd, "type": "Deep bedding - no mixing (< 1 month)", "allocation": 100 })
         elif manure_type == 3: # Pit Storage
-            manure_inputs.append({"herd_section": herd, "type": 6, "allocation": 100 })
+            manure_inputs.append({"herd_section": herd, "type": "Pit storage below animal confinements (6 month)", "allocation": 100 })
         elif manure_type == 4: # Liquid slurry with cover
-            manure_inputs.append({"herd_section": herd, "type": 32, "allocation": 100 })
+            manure_inputs.append({"herd_section": herd, "type": "Liquid slurry with cover", "allocation": 100 })
         elif manure_type == 5: # Liquid slurry without natural crust cover
-            manure_inputs.append({"herd_section": herd, "type": 4, "allocation": 100 })
+            manure_inputs.append({"herd_section": herd, "type": "Liquid slurry without natural crust cover", "allocation": 100 })
         elif manure_type == 6: # Anaerobic Digester, Low leakage, High quality industrial technology, open storage
-            manure_inputs.append({"herd_section": herd, "type": 29, "allocation": 100 })
+            manure_inputs.append({"herd_section": herd, "type": "Anaerobic Digester, Low leakage, High quality industrial technology, open storage", "allocation": 100 })
         elif manure_type == 7: # Custom
-                {"herd_section": herd, "type": 6, "allocation": 25},  # Pit Storage
-                {"herd_section": herd, "type": 1, "allocation": 25},  # Solid Storage
-                {"herd_section": herd, "type": 8, "allocation": 50},  # Solid Storage
+                {"herd_section": herd, "type": "Pit storage below animal confinements (6 month)", "allocation": 25},  # Pit Storage
+                {"herd_section": herd, "type": "Solid storage", "allocation": 25},  # Solid Storage
+                {"herd_section": herd, "type": "Deep bedding - no mixing (< 1 month)", "allocation": 50},  # Deep Bedding
         elif manure_type == 8: # No manure management (e.g. pasture only)
             manure_inputs.extend([
-                {"herd_section": herd, "type": 6, "allocation": 50}, 
-                {"herd_section": herd, "type": 8, "allocation": 50}, 
+                {"herd_section": herd, "type": "Pit storage below animal confinements (6 month)", "allocation": 50}, 
+                {"herd_section": herd, "type": "Deep bedding - no mixing (< 1 month)", "allocation": 50}, 
             ])
         else:
             st.warning(f"Invalid manure type for {herd}: {manure_type}. Skipping manure input for this herd section.")
@@ -281,28 +281,30 @@ def build_direct_energy_input(row):
     ]  # Currently not implemented
 
 def build_transport_input(row):
-    # Keep only off-farm feed & fertilizer
     off_farm_feed = [feed for feed in FEED_ITEMS if feed.get('production_location') != "on-farm"]
     off_farm_fert = [fert for fert in FERTILIZERS if fert.get('production_location') != "on-farm"]
 
-    # Calculate total DMI for off-farm feed across all herd sections
-    total_off_farm_feed_dmi = sum([
+    feed_fwi_lookup = {feed['cft_name']: feed['fwi_to_dmi'] for feed in FEED_ITEMS}
+
+    total_off_farm_feed_fwi = sum([
         (row.get(f"feed.{feed['cft_name']}.{hs['cft_name']}.kgDMI_head_day") or 0) *
         (
             (row.get(f"{hs['cft_name']}.herd_count") or 0) +
             (row.get(f"{hs['cft_name']}.purchased_count") or 0) +
             (row.get(f"{hs['cft_name']}.sold_count") or 0)
         ) * 365
+        / feed_fwi_lookup.get(feed['cft_name'], 1)
         for feed in off_farm_feed
         for hs in HERD_SECTIONS
-    ]) / 1000  # Convert kg to tonnes           
+    ]) / 1000
 
-    # Calculate total tonnes for off-farm fertilizers across all herd sections
-    total_off_farm_fertilizer = sum([row.get(f"fertilizers.{fert['key']}.t_per_ha", 0) * row.get("general.grazing_area_ha", 0)   for fert in off_farm_fert])
+    total_off_farm_fertilizer = sum([
+        row.get(f"fertilizers.{fert['key']}.t_per_ha", 0) * row.get("general.grazing_area_ha", 0)
+        for fert in off_farm_fert
+    ])
 
-    total_weight = total_off_farm_feed_dmi + total_off_farm_fertilizer
+    total_weight = total_off_farm_feed_fwi + total_off_farm_fertilizer
 
-        # CFT rules
     if total_weight <= 0:
         return []
 
@@ -310,18 +312,17 @@ def build_transport_input(row):
 
     return [
         {
-        "mode": 119, # "road HGV (average heavy goods vehicle)"
-        "weight": {
-          "value": round(total_weight, 3),
-          "unit": "tonne"
-        },
-        "distance": {
-          "value": 100,
-          "unit": "km"
+            "mode": 119,
+            "weight": {
+                "value": round(total_weight, 6),
+                "unit": "tonne"
+            },
+            "distance": {
+                "value": 100,
+                "unit": "km"
+            }
         }
-      }
-    ]  
-
+    ]
 
 def build_dairy_input(row):
     return {
