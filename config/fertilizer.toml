@@ -4,6 +4,7 @@ display_name = "Compose your own NPK"
 key = "custom_npk"
 inhibition = 1
 production_location = "off-farm"
+region = "Europe 2014"
 
 [[fertilizer]]
 cft_id = 46
@@ -11,6 +12,7 @@ display_name = "Ammonium nitrate - 33.5% N (granulated)"
 key = "ammonium_nitrate"
 inhibition = 2
 production_location = "off-farm"
+region = "Europe 2014"
 
 [[fertilizer]]
 cft_id = 4
@@ -18,6 +20,7 @@ display_name = "Ammonium sulphate nitrate - 26%N"
 key = "ammonium_sulphate_nitrate"
 inhibition = 1
 production_location = "off-farm"
+region = "Europe 2014"
 
 [[fertilizer]]
 cft_id = 6
@@ -25,6 +28,7 @@ display_name = "Calcium ammonium nitrate - 27% N"
 key = "calcium_nitrate"
 inhibition = 1
 production_location = "off-farm"
+region = "Europe 2014"
 
 [[fertilizer]]
 cft_id = 16
@@ -32,6 +36,7 @@ display_name = "Muriate of potash / Potassium chloride - 60% K2O"
 key = "potash"
 inhibition = 1
 production_location = "off-farm"
+region = "World 2014"
 
 [[fertilizer]]
 cft_id = 45
@@ -39,6 +44,7 @@ display_name = "Urea - 46% N"
 key = "urea"
 inhibition = 1
 production_location = "off-farm"
+region = "Europe 2014"
 
 [[fertilizer]]
 cft_id = 22
@@ -46,6 +52,7 @@ display_name = "Urea ammonium nitrate solution - 32% N"
 key = "urea_ammonium_nitrate"
 inhibition = 1
 production_location = "off-farm"
+region = "Europe 2014"
 
 [[fertilizer]]
 cft_id = 26
@@ -67,3 +74,4 @@ display_name = "Limestone - 55% CaCO3 / 29%CaO"
 key = "limestone"
 inhibition = 1
 production_location = "off-farm"
+region = "World 2014"
