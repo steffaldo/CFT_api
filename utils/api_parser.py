@@ -188,30 +188,37 @@ def build_manure_input(row):
     for herd in herd_sections:
         manure_type = int(row[f"manure_type.{herd}"])
 
+        pit = "Pit storage below animal confinements (6 month)"
+        solid = "Solid storage"
+        deep = "Deep bedding - no mixing (< 1 month)"
+        liquid_cover = "Liquid slurry with cover"
+        liquid_no_cover = "Liquid slurry without natural crust cover"
+        anaerobic_digester = "Anaerobic Digester, High leakage, low quality technology, open storage"
+
         
         if manure_type == 1: # Pit and Storage 
             manure_inputs.extend([
-                {"herd_section": herd, "type": "Pit storage below animal confinements (6 month)", "allocation": 50},  # Pit Storage
-                {"herd_section": herd, "type": "Solid storage", "allocation": 50},  # Solid Storage
+                {"herd_section": herd, "type": pit, "allocation": 50},  # Pit Storage
+                {"herd_section": herd, "type": solid, "allocation": 50},  # Solid Storage
             ])
         elif manure_type == 2: # Deep bedding
-            manure_inputs.append({"herd_section": herd, "type": "Deep bedding - no mixing (< 1 month)", "allocation": 100 })
+            manure_inputs.append({"herd_section": herd, "type": deep, "allocation": 100 })
         elif manure_type == 3: # Pit Storage
-            manure_inputs.append({"herd_section": herd, "type": "Pit storage below animal confinements (6 month)", "allocation": 100 })
+            manure_inputs.append({"herd_section": herd, "type": pit, "allocation": 100 })
         elif manure_type == 4: # Liquid slurry with cover
-            manure_inputs.append({"herd_section": herd, "type": "Liquid slurry with cover", "allocation": 100 })
+            manure_inputs.append({"herd_section": herd, "type": liquid_cover, "allocation": 100 })
         elif manure_type == 5: # Liquid slurry without natural crust cover
-            manure_inputs.append({"herd_section": herd, "type": "Liquid slurry without natural crust cover", "allocation": 100 })
+            manure_inputs.append({"herd_section": herd, "type": liquid_no_cover, "allocation": 100 })
         elif manure_type == 6: # Anaerobic Digester, Low leakage, High quality industrial technology, open storage
-            manure_inputs.append({"herd_section": herd, "type": "Anaerobic Digester, Low leakage, High quality industrial technology, open storage", "allocation": 100 })
+            manure_inputs.append({"herd_section": herd, "type": anaerobic_digester, "allocation": 100 })
         elif manure_type == 7: # Custom
-                {"herd_section": herd, "type": "Pit storage below animal confinements (6 month)", "allocation": 25},  # Pit Storage
-                {"herd_section": herd, "type": "Solid storage", "allocation": 25},  # Solid Storage
-                {"herd_section": herd, "type": "Deep bedding - no mixing (< 1 month)", "allocation": 50},  # Deep Bedding
+                {"herd_section": herd, "type": pit, "allocation": 25},  # Pit Storage
+                {"herd_section": herd, "type": solid, "allocation": 25},  # Solid Storage
+                {"herd_section": herd, "type": deep, "allocation": 50},  # Deep Bedding
         elif manure_type == 8: # No manure management (e.g. pasture only)
             manure_inputs.extend([
-                {"herd_section": herd, "type": "Pit storage below animal confinements (6 month)", "allocation": 50}, 
-                {"herd_section": herd, "type": "Deep bedding - no mixing (< 1 month)", "allocation": 50}, 
+                {"herd_section": herd, "type": pit, "allocation": 50}, 
+                {"herd_section": herd, "type": deep, "allocation": 50}, 
             ])
         else:
             st.warning(f"Invalid manure type for {herd}: {manure_type}. Skipping manure input for this herd section.")
