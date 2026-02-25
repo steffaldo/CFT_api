@@ -76,7 +76,7 @@ display_name = "Other cereals"
 certified = false
 region_name = "European Union + EFTA"
 cft_name = "other_cereals"
-fwi_to_dmi = 0.877
+fwi_to_dmi = 0.876857144
 production_location = "on-farm"
 
 [[feed]]
