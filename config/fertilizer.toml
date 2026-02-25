@@ -20,8 +20,8 @@ inhibition = 1
 production_location = "off-farm"
 
 [[fertilizer]]
-cft_id = 7
-display_name = "Calcium nitrate - 15.5% N"
+cft_id = 6
+display_name = "Calcium ammonium nitrate - 27% N"
 key = "calcium_nitrate"
 inhibition = 1
 production_location = "off-farm"
@@ -66,4 +66,4 @@ cft_id = 13
 display_name = "Limestone - 55% CaCO3 / 29%CaO"
 key = "limestone"
 inhibition = 1
-production_location = "on-farm"
+production_location = "off-farm"
