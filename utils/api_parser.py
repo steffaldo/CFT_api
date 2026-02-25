@@ -188,12 +188,12 @@ def build_manure_input(row):
     for herd in herd_sections:
         manure_type = int(row[f"manure_type.{herd}"])
 
-        pit = "Pit storage below animal confinements (6 month)"
+        pit = "Pit storage below animal confinements (6 months)"
         solid = "Solid storage"
         deep = "Deep bedding - no mixing (< 1 month)"
         liquid_cover = "Liquid slurry with cover"
         liquid_no_cover = "Liquid slurry without natural crust cover"
-        anaerobic_digester = "Anaerobic Digester, High leakage, low quality technology, open storage"
+        anaerobic_digester = "Anaerobic Digester, Low leakage, High quality industrial technology, open storage"
 
         
         if manure_type == 1: # Pit and Storage 
