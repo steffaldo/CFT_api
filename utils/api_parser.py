@@ -317,7 +317,7 @@ def build_transport_input(row):
 
     return [
         {
-            "mode": 119,
+            "mode": "road HGV (average heavy goods vehicle)",
             "weight": {
                 "value": round(total_weight, 6),
                 "unit": "tonne"
