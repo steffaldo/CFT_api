@@ -296,9 +296,7 @@ def build_transport_input(row):
     total_off_farm_feed_fwi = sum([
         (row.get(f"feed.{feed['cft_name']}.{hs['cft_name']}.kgDMI_head_day") or 0) *
         (
-            (row.get(f"{hs['cft_name']}.herd_count") or 0) +
-            (row.get(f"{hs['cft_name']}.purchased_count") or 0) +
-            (row.get(f"{hs['cft_name']}.sold_count") or 0)
+            (row.get(f"{hs['cft_name']}.herd_count") or 0) 
         ) * 365
         / feed_fwi_lookup.get(feed['cft_name'], 1)
         for feed in off_farm_feed
