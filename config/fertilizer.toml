@@ -60,6 +60,7 @@ display_name = "Cattle manure - 0.6% N"
 key = "cattle_manure"
 inhibition = 1
 production_location = "on-farm"
+region = "Europe 2014"
 
 [[fertilizer]]
 cft_id = 32
@@ -67,6 +68,7 @@ display_name = "Cattle slurry - 0.26% N"
 key = "cattle_slurry"
 inhibition = 1
 production_location = "on-farm"
+region = "Europe 2014"
 
 [[fertilizer]]
 cft_id = 13

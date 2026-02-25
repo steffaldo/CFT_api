@@ -129,7 +129,7 @@ def build_fertilizers_input(row):
     for fertilizer in FERTILIZERS:
         base_fertilizer = {
             "type": fertilizer["cft_id"], 
-            "production": fertilizer["region"] if fertilizer.get("region") else "", 
+            "production": fertilizer.get("region", ""), 
             "application_rate": {
                 "value": row[f"fertilizers.{fertilizer['key']}.t_per_ha"],
                 "unit": UNITS["fertilizer_application_rate"]
