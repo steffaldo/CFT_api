@@ -120,15 +120,13 @@ def build_grazing_input(row):
         })
     return grazing_input
 
-
-
 def build_fertilizers_input(row):
     """Build fertilizers section input"""
     fertilizers_input = []
     
     for fertilizer in FERTILIZERS:
         base_fertilizer = {
-            "type": fertilizer["cft_id"], 
+            "type": fertilizer["display_name"], 
             "production": fertilizer.get("region", ""), 
             "application_rate": {
                 "value": row[f"fertilizers.{fertilizer['key']}.t_per_ha"],
@@ -164,7 +162,7 @@ def build_feed_components_input(row):
     for feed in FEED_ITEMS:
         for hs in HERD_SECTIONS:
             feed_components_input.append({
-                "item": feed["cft_id"],
+                "item": feed["display_name"],
                 "region": feed["region_name"],
                 "herd_section": hs["cft_name"],
                 "dry_matter": {
