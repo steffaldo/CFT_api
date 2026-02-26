@@ -162,7 +162,7 @@ def build_feed_components_input(row):
     for feed in FEED_ITEMS:
         for hs in HERD_SECTIONS:
             feed_components_input.append({
-                "item": feed["display_name"],
+                "item": feed["cft_id"],
                 "region": feed["region_name"],
                 "herd_section": hs["cft_name"],
                 "dry_matter": {
