@@ -220,7 +220,7 @@ display_name = "Other oil cake/meal"
 certified = false
 region_name = "Global (world)"
 cft_name = "other_oil_meal"
-fwi_to_dmi = 0.891
+fwi_to_dmi = 0.8914
 production_location = "off-farm"
 
 [[feed]]
