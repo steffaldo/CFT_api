@@ -1,5 +1,10 @@
 import streamlit as st
-from data.supabase import get_dairy_inputs, get_impact_summary
+from data.supabase import (
+    get_dairy_inputs,
+    get_impact_summary,
+    delete_dairy_inputs_by_farm_id,
+    delete_dairy_outputs_by_farm_id,
+)
 import pandas as pd
 import plotly.express as px
 from typing import Optional
@@ -305,6 +310,40 @@ if 'selected_farm_id' in st.session_state:
     del st.session_state['selected_farm_id']
 
 selected_farm_id = get_selected_farm_id(farms, pre_selected_index=pre_selected_index)
+
+# Delete Farm Button (in sidebar)
+if selected_farm_id:
+    st.sidebar.divider()
+    col1, col2 = st.sidebar.columns([1, 1], gap="small")
+    with col1:
+        if st.button("🗑️ Delete Farm", key="delete_farm_btn", use_container_width=True):
+            st.session_state.delete_confirmation = True
+    
+    # Confirmation dialog
+    if st.session_state.get("delete_confirmation", False):
+        with st.sidebar.container(border=True):
+            st.warning(f"⚠️ Delete farm **{selected_farm_id}**?")
+            st.caption("This will permanently remove all input and output data from the database.")
+            col_yes, col_no = st.columns(2, gap="small")
+            with col_yes:
+                if st.button("Yes, Delete", key="confirm_delete", use_container_width=True):
+                    try:
+                        delete_dairy_inputs_by_farm_id(selected_farm_id)
+                        delete_dairy_outputs_by_farm_id(selected_farm_id)
+                        st.success(f"✓ Farm '{selected_farm_id}' deleted successfully.")
+                        st.session_state.delete_confirmation = False
+                        st.session_state.farm_deleted = True
+                        # Clear selection after deletion
+                        if 'selected_farm_id' in st.session_state:
+                            del st.session_state['selected_farm_id']
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Error deleting farm: {e}")
+                        st.session_state.delete_confirmation = False
+            with col_no:
+                if st.button("Cancel", key="cancel_delete", use_container_width=True):
+                    st.session_state.delete_confirmation = False
+                    st.rerun()
 
 if not selected_farm_id:
     st.info("Select a farm from the sidebar to view its impact summary.")

@@ -85,6 +85,11 @@ def delete_dairy_input(survey_id: str):
     supabase.table(TABLE_INPUTS).delete().eq("survey_id", survey_id).execute()
 
 
+def delete_dairy_inputs_by_farm_id(farm_id: str):
+    """Delete all dairy inputs for a given farm_id."""
+    supabase.table(TABLE_INPUTS).delete().eq("farm_id", farm_id).execute()
+
+
 def upsert_dairy_inputs(rows: List[Dict]):
     """
     Upsert multiple dairy input rows.
@@ -184,6 +189,11 @@ def upsert_dairy_outputs(rows: List[Dict]):
         payload,
         on_conflict="survey_id",
     ).execute()
+
+
+def delete_dairy_outputs_by_farm_id(farm_id: str):
+    """Delete all dairy outputs for a given farm_id."""
+    supabase.table(TABLE_OUTPUTS).delete().eq("farm_id", farm_id).execute()
 
 
 # ------------------------------------------------------------------
