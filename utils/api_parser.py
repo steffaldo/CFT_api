@@ -219,7 +219,11 @@ def build_manure_input(row):
                 {"herd_section": herd, "type": deep, "allocation": 50}, 
             ])
         else:
-            st.warning(f"Invalid manure type for {herd}: {manure_type}. Skipping manure input for this herd section.")
+            manure_inputs.extend([
+                {"herd_section": herd, "type": solid, "allocation": 25}, 
+                {"herd_section": herd, "type": pit, "allocation": 75}, 
+            ])
+            
 
     
     return manure_inputs
