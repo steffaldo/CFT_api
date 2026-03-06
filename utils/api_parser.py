@@ -210,9 +210,11 @@ def build_manure_input(row):
         elif manure_type == 6: # Anaerobic Digester, Low leakage, High quality industrial technology, open storage
             manure_inputs.append({"herd_section": herd, "type": anaerobic_digester, "allocation": 100 })
         elif manure_type == 7: # Custom
+            manure_inputs.extend([
                 {"herd_section": herd, "type": pit, "allocation": 25},  # Pit Storage
                 {"herd_section": herd, "type": solid, "allocation": 25},  # Solid Storage
                 {"herd_section": herd, "type": deep, "allocation": 50},  # Deep Bedding
+                ])
         elif manure_type == 8: # No manure management (e.g. pasture only)
             manure_inputs.extend([
                 {"herd_section": herd, "type": pit, "allocation": 50}, 
