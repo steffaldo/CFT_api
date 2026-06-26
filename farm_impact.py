@@ -413,6 +413,9 @@ with tab1:
                 label_visibility="collapsed",
             )
         summary_row = summary[summary["milk_year"] == selected_year].iloc[0]
+        cft_version = summary_row.get("cft_version")
+        if pd.notna(cft_version):
+            st.caption(f"CFT model version used for this run: `{cft_version}`")
         source_gas_df = build_source_by_gas_table(summary_row)
         st.dataframe(
             source_gas_df.style.format(

@@ -97,12 +97,19 @@ selection = st.plotly_chart(
 
 # --- Ranked Table ---
 st.header("Ranked Emissions Table")
-ranked_df = latest_summary[["farm_id", "emissions_total", "emissions_per_fpcm", "milk_year"]].rename(columns={
+ranked_cols = ["farm_id", "emissions_total", "emissions_per_fpcm", "milk_year"]
+rename_map = {
     "farm_id": "Farm",
     "emissions_total": "Total Emissions (tCO₂e)",
     "emissions_per_fpcm": "Intensity (tCO₂e/FPCM)",
     "milk_year": "Year"
-}).sort_values("Total Emissions (tCO₂e)", ascending=False).reset_index(drop=True)
+}
+if "cft_version" in latest_summary.columns:
+    ranked_cols.append("cft_version")
+    rename_map["cft_version"] = "CFT Version"
+
+ranked_df = latest_summary[ranked_cols].rename(columns=rename_map) \
+    .sort_values("Total Emissions (tCO₂e)", ascending=False).reset_index(drop=True)
 
 table_selection = st.dataframe(
     ranked_df,
